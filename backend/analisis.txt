@@ -1,0 +1,11 @@
+Prevalencia de los síntomas:
+	1. Cada respuesta del BDI y título se representa con SentenceBert, tenemos por tanto 5 vectores representando cada item BDI
+	2. El texto de entrada se segmenta en n oraciones 
+	3. Cada oración se mide su distancia cos con cada uno de los 5 vectores y se hace el max. Ese max es la estimación de la presencia de esa categoría en la oración.
+	4. Para calcular la prevalencia del síntoma para todo el texto de entrada se promedia los n max de las n oraciones.
+
+Intesidad de los síntomas
+	1. Cada respuesta del BDI se representa con SentenceBert, tenemos por tanto 4 vectores representando cada item BDI
+	2. El texto de entrada se segmenta en n oraciones 
+	3. Cada oración se mide su distancia cos con cada uno de los 4 vectores y se hace el max. La respuesta que produzca el valor máximo se almacena como la respuesta para esa oración.
+	4. Para calcular la intensidad del síntoma para todo el texto de entrada se toma la respuesta más alta de todas las puntuaciones.
