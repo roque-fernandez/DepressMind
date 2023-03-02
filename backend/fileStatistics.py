@@ -1,5 +1,5 @@
 import json
-outputLocation = r"C:\Users\roque\OneDrive\Escritorio\TFG\react-login-signup-ui\backend\outputs\\"
+outputLocation = r".\outputs\\"
 
 def redditStatistics(file):
     path = outputLocation + file

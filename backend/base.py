@@ -9,7 +9,7 @@ import bcrypt
 import fileStatistics as fst
 import analyzer 
 
-outputLocation = r"C:\Users\roque\OneDrive\Escritorio\TFG\react-login-signup-ui\backend\outputs\\"
+outputLocation = r".\outputs\\"
 uploadLocation = r".\upload\\"
 
 app = Flask(__name__)
@@ -42,6 +42,7 @@ def reddit():
         return "Bad request", 400
 
     route = outputLocation + outputName
+    print("Route:",route)
     try:
         total,avgVotes,totalUsers = fst.redditStatistics(outputName)
         statistics = {
@@ -50,6 +51,7 @@ def reddit():
             "totalUsers": totalUsers
         }
         response = send_file(route)
+        
         return response,200,{"statistics": statistics}
     except Exception as e:
         return str(e)

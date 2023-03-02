@@ -57,11 +57,12 @@ def twitterCrawler(search=None, username=None, language='es', limit=100, since=N
 ########################################################################################################################
 
 class redditPost:
-    def __init__(self, username, text, date=None, votes=None):
+    def __init__(self, username, text, date=None, votes=None, link=None):
         self.username = username
         self.text = text
         self.date = date
         self.votes = votes
+        self.link = link
 
 
 def getPostInfo(soup):
@@ -70,14 +71,16 @@ def getPostInfo(soup):
     postUsername = soup.find("a", {"class" : usernameRegex}).text
     postText = soup.find("a", {"class": ["title may-blank", "title may-blank outbound"]}).text.strip()
     postText += " "
+
     if soup.find("div", class_="md") is not None:
         postText += soup.find("div", class_="md").text.strip()
     postDate = soup.find("time")["datetime"]
-
     if postVotes == "•":
         postVotes = 0
 
-    return redditPost(postUsername, postText, postDate, postVotes)
+    postLink = "https://reddit.com" + soup.find("div", class_="thing")["data-url"]
+
+    return redditPost(postUsername, postText, postDate, postVotes, postLink)
 
 def writePostToJson(post, outfile):
     jsonPost = json.dumps(post.__dict__, indent=1)
@@ -86,13 +89,14 @@ def writePostToJson(post, outfile):
     print(jsonPost)
     print("_________________")
 
-def getCommentInfo(soup):
+def getCommentInfo(soup,link=None):
     usernameRegex = re.compile('.*author.*')
     commentUsername = soup.find("a", {"class": usernameRegex}).text
     commentText = soup.find("div", class_="usertext-body").text.strip()
     commentDate = soup.find("time")["datetime"]
+    commentLink = "https://reddit.com" + link
 
-    return redditPost(commentUsername, commentText, commentDate)
+    return redditPost(commentUsername, commentText, commentDate, link=commentLink)
 
 def dateInRange(since, until, date):
     if date > since and date < until:
@@ -181,7 +185,7 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
                     if count >= limit:
                         print("Limit reached at ", count, " posts")
                         return count,outputName
-                    print("Post: ", post.user)
+                    print("Post: ", post.username)
 
                     # writing the object to json file
                     writePostToJson(post, outfile)
@@ -197,7 +201,7 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
 
                     if (taglineContent and not "[deleted]" in taglineContent):
                         try:
-                            comment = getCommentInfo(commentSoup)
+                            comment = getCommentInfo(commentSoup,link=postLink)
 
                             if not dateInRange(since, until, comment.date):
                                 continue
@@ -268,7 +272,9 @@ def getUserPostInfo(soup):
     #check if post has valid votes
     if soup.find("div", class_="midcol unvoted").text != "":
         postVotes = soup.find("div", class_="score unvoted").text
-    return redditPost(postUsername, postText, postDate, postVotes)
+    postLink = "https://reddit.com" + soup.find("a", {"class": ["title"]})["href"]
+    
+    return redditPost(postUsername, postText, postDate, postVotes, postLink)
 
 def redditUserCrawler(username, limit=1000, votes=0, since=None, until=None):
     url = 'https://old.reddit.com/user/' + username
@@ -341,7 +347,8 @@ def getQueryPostInfo(soup):
     postDate = soup.find("time")["datetime"]
     postVotes = soup.find("span", class_="search-score").text.split(" ")[0]
     postVotes = postVotes.translate({ord(c): None for c in ",\""})
-    return redditPost(postUsername, postText, postDate, postVotes)
+    postLink = "https://reddit.com" + soup.find("a", {"class": ["may-blank thumbnail"]})["href"]
+    return redditPost(postUsername, postText, postDate, postVotes, postLink)
 
 def redditQueryCrawler(query, limit=1000, votes=0, since=None, until=None):
     url = 'https://old.reddit.com/search?q=' + query
@@ -448,10 +455,12 @@ def commandLineParser():
 
 ########################################################################################################################
 #commandLineParser()
-#subredditCrawler('depression',votes=0,limit=50)
+#subredditCrawler('depression',votes=0,limit=1000)
+#subredditCrawler('depression_help',votes=0,limit=100)
+
 #prueba()
 # getLink()
 #twitterCrawler(username="roquefernandez_",search="chorizo",limit=100)
 #redditGeneralistCrawler(limit=100, limitPerSubreddit=20)
-#redditUserCrawler('toohottooheavy',limit=100)
-#redditQueryCrawler("car",limit=50)
+#redditUserCrawler('toohottooheavy',limit=10)
+redditQueryCrawler("car",limit=50)
