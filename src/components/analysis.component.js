@@ -20,10 +20,6 @@ export default class Analysis extends Component {
     this.result = null;
     this.graphData = [2,6,3,5,5,7,2,6,3,5,5,7,2,6,3,5,5,7,4,5,6]
 
-    console.log("User in analysis context: ", this.context)
-    console.log("User in analysis props: ", this.props.login)
-
-
     this.state = {
       source: 'reddit',
       mode: 'presence',
@@ -63,7 +59,8 @@ export default class Analysis extends Component {
     axios.post('/analysis', formData,{
       params: {
         source: this.state.source,
-        mode: this.state.mode
+        mode: this.state.mode,
+        username: this.context.loggedIn
       },
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -89,79 +86,163 @@ export default class Analysis extends Component {
   }
 
   render() {
-    if(!this.context){
-      if(this.state.resultFlag){
-        //<AnalysisResult statistics={this.result}/>
-        return(
-          <AnalysisResult statistics={this.result} mode={this.state.mode}/> 
-        )
-      }
-      else{
-        return (
-          <div className="web-container">
-              <LoggedNavBar
-                login={this.context}
-              />
-              <h3>Analysis</h3>
-              <form>
-  
-                <div className="mb-3">
-                  <label htmlFor="sourceInput">Source</label>
-                  <select onChange={this.handleChange} name="source" id="sourceInput" className="form-select" aria-label="Default select example">
-                      <option defaultValue="reddit">Reddit</option>
-                      <option value="twitter">Twitter</option>
-                  </select>
-                </div>
-  
-                <div className="mb-3">
-                  <label htmlFor="modeInput">Mode</label>
-                  <select onChange={this.handleChange} name="mode" id="modeInput" className="form-select" aria-label="Default select example">
-                      <option defaultValue="presence">Presence</option>
-                      <option value="intensity">Intensity</option>
-                  </select>
-                </div>
+    console.log("User context in Analysis: ", this.context)
+    console.log("User context alt in Analysis: ",this.context.loggedIn)
+    //console.log("User in analysis props: ", this.location.state)
 
-                <div className="mb-3">
-                  <input type="file" onChange={this.onFileChange} />
+    return(
+      <loginContext.Consumer>
+        {(context) => {
+          if(context.loggedIn){
+            if(this.state.resultFlag){
+              //<AnalysisResult statistics={this.result}/>
+              return(
+                <AnalysisResult statistics={this.result} mode={this.state.mode}/> 
+              )
+            }
+            else{
+              return (
+                <div className="web-container">
+                    <LoggedNavBar 
+                      login={context.loggedIn} 
+                    />
+                    <h3>Analysis</h3>
+                    <form>
+        
+                      <div className="mb-3">
+                        <label htmlFor="sourceInput">Source</label>
+                        <select onChange={this.handleChange} name="source" id="sourceInput" className="form-select" aria-label="Default select example">
+                            <option defaultValue="reddit">Reddit</option>
+                            <option value="twitter">Twitter</option>
+                        </select>
+                      </div>
+        
+                      <div className="mb-3">
+                        <label htmlFor="modeInput">Mode</label>
+                        <select onChange={this.handleChange} name="mode" id="modeInput" className="form-select" aria-label="Default select example">
+                            <option defaultValue="presence">Presence</option>
+                            <option value="intensity">Intensity</option>
+                        </select>
+                      </div>
+      
+                      <div className="mb-3">
+                        <input type="file" onChange={this.onFileChange} />
+                      </div>
+        
+                      <div className="d-grid centered-button">
+                        <button onClick={this.getData} disabled={this.state.loading} className="btn btn-primary">
+                          Analyse
+                        </button>
+                      </div>
+      
+                      {this.state.loading ?
+                        <BarLoader
+                            loading={this.state.loading}
+                            className="loading-spinner"
+                            size={300}
+                            aria-label="Loading Spinner"
+                            data-testid="loader"
+                        /> :
+                        null
+                      }
+      
+                      {this.state.error ?
+                        <p className='error'>There was an error during search, please try again</p> :
+                        null
+                      }
+        
+                      <div>
+                        <p>{this.state.result}</p>
+                      </div>
+                      
+                    </form>
                 </div>
-  
-                <div className="d-grid centered-button">
-                  <button onClick={this.getData} disabled={this.state.loading} className="btn btn-primary">
-                    Analyse
-                  </button>
-                </div>
+              )
+            }
+          }
+          else{
+            <div>
+              <p>In order to search you need to sign-in</p>
+              <p>User: {this.context}</p>
+            </div>
+          }
+        }}
+      </loginContext.Consumer>
+    )
 
-                {this.state.loading ?
-                  <BarLoader
-                      loading={this.state.loading}
-                      className="loading-spinner"
-                      size={300}
-                      aria-label="Loading Spinner"
-                      data-testid="loader"
-                  /> :
-                  null
-                }
-
-                {this.state.error ?
-                  <p className='error'>There was an error during search, please try again</p> :
-                  null
-                }
+    // if(this.context){
+    //   if(this.state.resultFlag){
+    //     //<AnalysisResult statistics={this.result}/>
+    //     return(
+    //       <AnalysisResult statistics={this.result} mode={this.state.mode}/> 
+    //     )
+    //   }
+    //   else{
+    //     return (
+    //       <div className="web-container">
+    //           <LoggedNavBar
+    //             login={this.context}
+    //           />
+    //           <h3>Analysis</h3>
+    //           <form>
   
-                <div>
-                  <p>{this.state.result}</p>
-                </div>
+    //             <div className="mb-3">
+    //               <label htmlFor="sourceInput">Source</label>
+    //               <select onChange={this.handleChange} name="source" id="sourceInput" className="form-select" aria-label="Default select example">
+    //                   <option defaultValue="reddit">Reddit</option>
+    //                   <option value="twitter">Twitter</option>
+    //               </select>
+    //             </div>
+  
+    //             <div className="mb-3">
+    //               <label htmlFor="modeInput">Mode</label>
+    //               <select onChange={this.handleChange} name="mode" id="modeInput" className="form-select" aria-label="Default select example">
+    //                   <option defaultValue="presence">Presence</option>
+    //                   <option value="intensity">Intensity</option>
+    //               </select>
+    //             </div>
+
+    //             <div className="mb-3">
+    //               <input type="file" onChange={this.onFileChange} />
+    //             </div>
+  
+    //             <div className="d-grid centered-button">
+    //               <button onClick={this.getData} disabled={this.state.loading} className="btn btn-primary">
+    //                 Analyse
+    //               </button>
+    //             </div>
+
+    //             {this.state.loading ?
+    //               <BarLoader
+    //                   loading={this.state.loading}
+    //                   className="loading-spinner"
+    //                   size={300}
+    //                   aria-label="Loading Spinner"
+    //                   data-testid="loader"
+    //               /> :
+    //               null
+    //             }
+
+    //             {this.state.error ?
+    //               <p className='error'>There was an error during search, please try again</p> :
+    //               null
+    //             }
+  
+    //             <div>
+    //               <p>{this.state.result}</p>
+    //             </div>
                 
-              </form>
-          </div>
-        )
-      }
-    }  
-    else{
-      <div>
-        <p>In order to search you need to sign-in</p>
-        <p>User: {this.context}</p>
-    </div>
-    }
+    //           </form>
+    //       </div>
+    //     )
+    //   }
+    // }  
+    // else{
+    //   <div>
+    //     <p>In order to search you need to sign-in</p>
+    //     <p>User: {this.context}</p>
+    //   </div>
+    // }
   }
 }
 

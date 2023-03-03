@@ -8,6 +8,8 @@ import { loginContext } from "../context/LoginContext"
 
 export default class Search extends Component {
 
+    static contextType = loginContext;
+
     constructor(props){
         super(props)
         
@@ -16,8 +18,7 @@ export default class Search extends Component {
             source: "Reddit",
             user: this.context
         }
-        console.log("User: ",this.props.login)
-        console.log("User context: ",this.context)
+        
     }
 
     handleChange = e => {
@@ -26,41 +27,53 @@ export default class Search extends Component {
 
     render() {
         //if(this.props.login){
-        if(this.context){
-            return (
-                <div className="web-container search-component">
-                    <div>
-                        <LoggedNavBar 
-                            login={this.context} 
-                        />
-                    </div>
-                    <div className='search-component'>
-                        <h3>Source</h3>
-                        <div className="mb-3">
-                            <select onChange={this.handleChange} name="source" className="form-select" aria-label="Default select example">
-                                <option defaultValue="Reddit">Reddit</option>
-                                <option value="Twitter">Twitter</option>
-                            </select>
-                        </div>
-                    
-                        {this.state.source === 'Twitter' ?
-                            <TwitterSearch /> :
-                            <RedditSearch /> 
-                        }
-                    </div>
-                    
-                </div>
-                
-            )
-        }
-        else{
-            return(
-                <div>
-                    <p>In order to search you need to sign-in</p>
-                    <p>User: {this.context}</p>
-                </div>
-            )
-        }    
+        console.log("User context in Search: ",this.context)
+        console.log("User props in Search: ",this.props.login)
+        console.log("User context alt in Search: ",this.context.loggedIn)
+
+
+        return(
+            <loginContext.Consumer>
+                {(context) => {
+                    if(context.loggedIn){
+                        return (
+                            <div className="web-container search-component">
+                                <div>
+                                    <LoggedNavBar 
+                                        login={this.context} 
+                                    />
+                                </div>
+                                <div className='search-component'>
+                                    <h3>Source</h3>
+                                    <div className="mb-3">
+                                        <select onChange={this.handleChange} name="source" className="form-select" aria-label="Default select example">
+                                            <option defaultValue="Reddit">Reddit</option>
+                                            <option value="Twitter">Twitter</option>
+                                        </select>
+                                    </div>
+                                
+                                    {this.state.source === 'Twitter' ?
+                                        <TwitterSearch /> :
+                                        <RedditSearch /> 
+                                    }
+                                </div>
+                                
+                            </div>
+                            
+                        )
+                    }
+                    else{
+                        return(
+                            <div>
+                                <p>In order to search you need to sign-in</p>
+                                <p>User: {this.context}</p>
+                            </div>
+                        )
+                    }
+                }}
+            </loginContext.Consumer>
+        )
+
     }
 }
 

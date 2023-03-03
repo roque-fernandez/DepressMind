@@ -463,4 +463,4 @@ def commandLineParser():
 #twitterCrawler(username="roquefernandez_",search="chorizo",limit=100)
 #redditGeneralistCrawler(limit=100, limitPerSubreddit=20)
 #redditUserCrawler('toohottooheavy',limit=10)
-redditQueryCrawler("car",limit=50)
+#redditQueryCrawler("car",limit=50)

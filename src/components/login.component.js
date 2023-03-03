@@ -58,12 +58,15 @@ export default class Login extends Component {
 
     render() {
         if(this.state.redirect){
-            return <div>
-                <loginContext.Provider value={this.state.username}>           
+            // Update the context value
+            this.context.setLoggedIn(this.state.username);
+            return (
+                <div>
                     <Search login={this.state.username} />
-                    <Analysis login={this.state.username} />
-                </loginContext.Provider>
-            </div>
+                    {/* <Analysis login={this.state.username} /> */}
+                </div>
+            )
+            
         }
         else{
             return (
@@ -120,3 +123,6 @@ export default class Login extends Component {
         }    
     }
 }
+
+
+Login.contextType = loginContext; 

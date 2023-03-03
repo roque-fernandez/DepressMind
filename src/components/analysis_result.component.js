@@ -262,7 +262,7 @@ export default class AnalysisResult extends Component {
   }
 
   render() {
-    if(!this.context){
+    if(this.context.loggedIn){
       return (
         <div className="web-container">
             <LoggedNavBar/>

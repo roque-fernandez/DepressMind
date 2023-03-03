@@ -80,11 +80,13 @@ def analysis():
     try:
         mode = request.args.get('mode')
         source = request.args.get('source')
-        print("Mode and source: ",mode,source)
+        username = request.args.get('username')
+         
+        print("Mode, source and username: ",mode,source,username)
         f = request.files['file']
         f.save(os.path.join(uploadLocation, secure_filename(f.filename)))
         #if we already analysed a file of a user we return the stored results
-        fileResults = stored_results.find_one({'username': 'pepe', 'filename': f.filename, 'mode':mode})
+        fileResults = stored_results.find_one({'username': username, 'filename': f.filename, 'mode':mode})
         
         if fileResults:
             resultsDict = json.loads(fileResults['results'])
@@ -102,7 +104,7 @@ def analysis():
             print(type(results))
             print("Results: ",json.dumps(resultsDict))
             #write results to mongo
-            stored_results.insert_one({'username': 'pepe', 'filename': f.filename, 'mode':mode, 'results': json.dumps(resultsDict)})
+            stored_results.insert_one({'username': username, 'filename': f.filename, 'mode':mode, 'results': json.dumps(resultsDict)})
             return jsonify(analysis,dailyAnalysis,weeklyAnalysis,monthlyAnalysis)
     except Exception as e:
         return str(e)
