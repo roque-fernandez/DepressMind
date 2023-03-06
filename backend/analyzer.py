@@ -318,60 +318,6 @@ def sentenceIntensity(sentences,printFlag=False,threshold=0.2):
     diagnosis(result)
     return result
 
-def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
-    intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
-    sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
-    totalResults = []
-    result = []
-    questionIndex = 0
-    
-    for question in questions:
-        print("************************************")
-        print('Question:',bdiTitles[questionIndex])
-        questionResults = []
-        for sentence in sentences:
-            #array where the scores of a sentence for the options of the question
-            sentenceValuesForQuestion = []
-            for option in question:
-                score = ENTAIL_MODEL.predict([(sentence, option)]) ### text, hypothesis => it is very important to keep the order
-                label =  [LABEL_MAPPING[score_max] for score_max in score.argmax(axis=1)]   
-                #if label is neutral or contradiction we consider the value a 0
-                if label[0] != 'entailment':
-                    value = 0
-                else:
-                    value = score[0][1]
-                sentenceValuesForQuestion.append(value)
-                
-                if printFlag:
-                    print("{} \t {} \t Score: {} \t Value: {:.3f} \t Label: {}".format(sentence, option, score, value, label))
-                    
-
-            questionResults.append(sentenceValuesForQuestion)
-        print("Results for question: \n",questionResults)
-        #get points corresponding to that question
-        maxSimilarityIndex,maxSimilarity = maxIndexOfScoresNLI(questionResults)
-        maxPoints = int(points[questionIndex][maxSimilarityIndex])
-        result.append(maxPoints)
-        
-        totalResults.append(questionResults)
-        questionIndex += 1
-    #print("Total results:", totalResults)
-    print(result)
-            
-#given the scores of the sentences with the options of a question 
-#returns the index of the max value
-def maxIndexOfScoresNLI(scores):
-    maxSimilarity = scores[0][0]
-    maxSimilarityIndex = 0
-    #get the index of the max similarity 
-    for i in range(len(scores)):
-        for j in range(len(scores[i])):
-            if scores[i][j] > maxSimilarity:
-                maxSimilarity = scores[i][j]
-                maxSimilarityIndex = j
-    return maxSimilarityIndex,maxSimilarity 
-    
-
 def filterBelowThreshold(tensors, threshold):
     # Iterate over the list of lists of tensors
     for tensorList in tensors:
@@ -415,6 +361,96 @@ def getSentencesPoints(scores,points,maxPoints,questionIndex):
     print("Question points: ",sentencesPoints)
     return 
 
+
+
+#############################################################################################################  
+# INTENSITY USING NATURAL LANGUAGE INFERENCE
+############################################################################################################# 
+
+def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
+    intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
+    sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
+    totalResults = []
+    result = []
+    questionIndex = 0
+    mostIntenseSentences = []
+    
+    for question in questions:
+        print("************************************")
+        print('Question:',bdiTitles[questionIndex])
+        questionResults = []
+        for sentence in sentences:
+            #array where the scores of a sentence for the options of the question
+            sentenceValuesForQuestion = []
+            for option in question:
+                score = ENTAIL_MODEL.predict([(sentence, option)]) ### text, hypothesis => it is very important to keep the order
+                label =  [LABEL_MAPPING[score_max] for score_max in score.argmax(axis=1)]   
+                #if label is neutral or contradiction we consider the value a 0
+                if label[0] != 'entailment':
+                    value = 0
+                else:
+                    value = score[0][1]
+                sentenceValuesForQuestion.append(value)
+                
+                if printFlag:
+                    print("{} \t {} \t Score: {} \t Value: {:.3f} \t Label: {}".format(sentence, option, score, value, label))
+                    
+
+            questionResults.append(sentenceValuesForQuestion)
+
+        print("Results for question: \n",questionResults)
+        #get points corresponding to that question
+        maxSimilarityIndex,maxSimilarity = maxIndexOfScoresNLI(questionResults)
+        maxPoints = int(points[questionIndex][maxSimilarityIndex])
+        result.append(maxPoints)
+        #get the most intense sentences for the question and append it
+        mostIntenseSentences.append(intenseSentencesOfQuestion(questionResults,sentences,points,maxPoints,questionIndex))
+        totalResults.append(questionResults)
+        questionIndex += 1
+    #print("Total results:", totalResults)
+    print("Result: \n",result)
+    print("Intense sentences: \n",mostIntenseSentences)
+
+    return result
+            
+#given the scores of the sentences with the options of a question 
+#returns the index of the max value
+def maxIndexOfScoresNLI(scores):
+    maxSimilarity = scores[0][0]
+    maxSimilarityIndex = 0
+    #get the index of the max similarity 
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] > maxSimilarity:
+                maxSimilarity = scores[i][j]
+                maxSimilarityIndex = j
+    return maxSimilarityIndex,maxSimilarity 
+
+#given the scores of a list of sentences returns the sentences wich have
+#the max intensity ¿[with the link and context of the sentence]?
+def intenseSentencesOfQuestion(scores,sentences,points,maxPoints,questionIndex):
+    mostIntenseSentences = []
+    #if there is no points above 0 we return []
+    if maxPoints == 0:
+        return mostIntenseSentences
+    #get points for every sentence
+    sentencesPoints = getSentencesPointsNLI(scores,points,questionIndex)
+    for i in range(len(sentencesPoints)):
+        if sentencesPoints[i] == maxPoints:
+            mostIntenseSentences.append(sentences[i])
+    return mostIntenseSentences
+
+#given the scores of a list of sentences and a question
+#returns the points for everySentence
+def getSentencesPointsNLI(scores,points,questionIndex):
+    #get the question option that matches that score
+    questionOptions = [ l.index(max(l)) for l in scores ]
+    #get the points for the question option
+    sentencesPoints = [ int(points[questionIndex][questionOption]) for questionOption in questionOptions ]
+    print("Question options: ",questionOptions)
+    print("Question points: ",sentencesPoints)
+    return questionOptions
+    
 
 
 def diagnosis(testResult):
@@ -463,6 +499,9 @@ sentenceIntensityNLI(sad,printFlag=True,threshold=0.35)
 tensors = torch.tensor([[0.1599, 0.1370, 0.1933, 0.2030],
          [0.5391, 0.5128, 0.5068, 0.5192]])
 
+exampleScores = [[0.1599, 0.1370, 0.1933, 0.2030],
+         [0.5391, 0.5128, 0.5068, 0.5192]]
+
 #score for veryHappy sentences in question 1 (sadness)
 scoreVeryHappyQ1 = torch.tensor([[0.0, 0.0, 0.3541, 0.3585],
          [0.4335, 0.4045, 0.3736, 0.0]])
@@ -475,6 +514,8 @@ scoreVeryHappyQ1 = torch.tensor([[0.0, 0.0, 0.3541, 0.3585],
 #prevalenceEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
 
 #getSentencesPoints(tensors,points,0,0)
+#getSentencesPointsNLI(exampleScores,points,0,0)
+
 # filtered_tensors = filterBelowThreshold(tensors, 0.25)
 # print(filtered_tensors)
 
