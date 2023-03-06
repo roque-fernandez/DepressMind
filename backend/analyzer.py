@@ -1,13 +1,20 @@
-from sentence_transformers import SentenceTransformer,util
+from sentence_transformers import SentenceTransformer,util, CrossEncoder
 import pickle
 import torch
 import json
 import datetime
+
 model = SentenceTransformer('all-MiniLM-L6-v2')
 presenceFile = r".\BDI\bdi_presence.txt"
 intensityFile = r".\BDI\bdi_intensity.txt"
 outputLocation = r".\upload\\"
 threshold = 0.35
+
+ENTAIL_MODEL = CrossEncoder('cross-encoder/nli-deberta-v3-base')
+LABEL_MAPPING = ['contradiction', 'entailment', 'neutral']
+
+bdiTitles = ['Sadness','Pessimism','Past Failure','Loss of Pleasure','Guilty Feelings','Punishment Feelings','Self-Dislike','Self-Criticalness','Suicidal Thoughts or Wishes','Crying','Agitation','Loss of Interest','Indecisiveness','Worthlessness','Loss of Energy','Changes in Sleeping Pattern','Irritability','Changes in Appetite','Concentration Difficulty','Tiredness or Fatigue','Loss of Interest in Sex']
+
 
 #############################################################################################################  
 # TIME ANALYSIS
@@ -145,18 +152,25 @@ def groupByDay(objects,source):
 ############################################################################################################# 
 
 def analyzer(file,source='reddit',mode='presence'):
-    texts = getTextFromJson(file,source=source)
+    texts,links = getTextFromJson(file,source=source)
+    sentencesLinks = []
     sentences = []
-    for t in texts:
+    for t,l in zip(texts,links):
         splittedText = t.split('.')
         for st in splittedText:
             sentences.append(st)
+            sentencesLinks.append(l)
     if mode == 'presence':
         result = sentencePresence(sentences)
+        return result 
     else:
+        # print(sentences)
+        # print("****************************")
+        # print(sentencesLinks)
+        # print("****************************")
         result = sentenceIntensity(sentences,threshold=threshold)
-    #print(result)
-    return result
+        return result, intenseSentences
+    
 
 def getTextFromJson(file,source='reddit'):
     path = outputLocation + file
@@ -164,17 +178,20 @@ def getTextFromJson(file,source='reddit'):
         content = f.read()
         decoder = json.JSONDecoder()
         texts = []
+        links = []
         while content:
             value, new_start = decoder.raw_decode(content)
             content = content[new_start:].strip()
             # You can handle the value directly in this loop:
             if source == 'reddit':
                 text = value['text']
+                link = value['link']
             else: 
                 text = value['tweet']
             # Or you can store it in a container and use it later:
             texts.append(text)
-    return texts
+            links.append(link)
+    return texts,links
 
 def createEmbeddings(file,mode='presence'):
     #list of the embeddings for each question
@@ -268,11 +285,11 @@ def sentencePresence(sentences,printFlag=False):
 ############################################################################################################# 
 
 def sentenceIntensity(sentences,printFlag=False,threshold=0.2):
-    prevalenceEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
+    intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
     sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
     result = []
     questionIndex = 0
-    for questionEmbeddings in prevalenceEmbeddings:
+    for questionEmbeddings in intensityEmbeddings:
         
         #Compute cosine-similarities
         cosineScores = util.cos_sim(sentencesEmbedding, questionEmbeddings)
@@ -286,7 +303,7 @@ def sentenceIntensity(sentences,printFlag=False,threshold=0.2):
         result.append(maxPoints)
         
         if printFlag:
-            print('Question:',questionIndex+1)
+            print('Question:',bdiTitles[questionIndex])
             print('Scores:')
             for i in range(len(sentences)):
                 for j in range(len(questions[questionIndex])):
@@ -300,6 +317,60 @@ def sentenceIntensity(sentences,printFlag=False,threshold=0.2):
     printResult(result)
     diagnosis(result)
     return result
+
+def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
+    intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
+    sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
+    totalResults = []
+    result = []
+    questionIndex = 0
+    
+    for question in questions:
+        print("************************************")
+        print('Question:',bdiTitles[questionIndex])
+        questionResults = []
+        for sentence in sentences:
+            #array where the scores of a sentence for the options of the question
+            sentenceValuesForQuestion = []
+            for option in question:
+                score = ENTAIL_MODEL.predict([(sentence, option)]) ### text, hypothesis => it is very important to keep the order
+                label =  [LABEL_MAPPING[score_max] for score_max in score.argmax(axis=1)]   
+                #if label is neutral or contradiction we consider the value a 0
+                if label[0] != 'entailment':
+                    value = 0
+                else:
+                    value = score[0][1]
+                sentenceValuesForQuestion.append(value)
+                
+                if printFlag:
+                    print("{} \t {} \t Score: {} \t Value: {:.3f} \t Label: {}".format(sentence, option, score, value, label))
+                    
+
+            questionResults.append(sentenceValuesForQuestion)
+        print("Results for question: \n",questionResults)
+        #get points corresponding to that question
+        maxSimilarityIndex,maxSimilarity = maxIndexOfScoresNLI(questionResults)
+        maxPoints = int(points[questionIndex][maxSimilarityIndex])
+        result.append(maxPoints)
+        
+        totalResults.append(questionResults)
+        questionIndex += 1
+    #print("Total results:", totalResults)
+    print(result)
+            
+#given the scores of the sentences with the options of a question 
+#returns the index of the max value
+def maxIndexOfScoresNLI(scores):
+    maxSimilarity = scores[0][0]
+    maxSimilarityIndex = 0
+    #get the index of the max similarity 
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] > maxSimilarity:
+                maxSimilarity = scores[i][j]
+                maxSimilarityIndex = j
+    return maxSimilarityIndex,maxSimilarity 
+    
 
 def filterBelowThreshold(tensors, threshold):
     # Iterate over the list of lists of tensors
@@ -318,6 +389,33 @@ def maxIndexOfScores(scores):
         for j in range(len(scores[i])):
             if scores[i][j] == maxSimilarity:
                 return j,maxSimilarity
+
+#given the scores of a list of sentences returns the sentences wich have
+#the max intensity with the link and context of the sentence
+def mostIntenseSentences(scores,sentences,points,maxPoints,questionIndex):
+    mostIntenseSentences = []
+    #if there is no points above 0 we return []
+    if maxPoints == 0:
+        return mostIntenseSentences
+    #get points for every sentence
+
+    for i in range(len(sentencePoints)):
+        if sentencePoints[i] == maxPoints:
+            mostIntenseSentences.append(sentences[i])
+    return mostIntenseSentences
+
+#given the scores of a list of sentences and a question
+#returns the points for everySentence
+def getSentencesPoints(scores,points,maxPoints,questionIndex):
+    #get the question option that matches that score
+    questionOptions = [torch.argmax(l).item() for l in scores ]
+    #get the points for the question option
+    sentencesPoints = [ int(points[questionIndex][questionOption]) for questionOption in questionOptions ]
+    print("Question options: ",questionOptions)
+    print("Question points: ",sentencesPoints)
+    return 
+
+
 
 def diagnosis(testResult):
     total = sum(testResult)
@@ -338,20 +436,45 @@ def diagnosis(testResult):
         print("Extreme depression")
     print('******************************')
 
+def testNLI(sentences,options):
+    scores = ENTAIL_MODEL.predict([(sentences, options)]) ### text, hypothesis => it is very important to keep the order
+    labels =  [LABEL_MAPPING[score_max] for score_max in scores.argmax(axis=1)]
+    print("Scores:", scores)
+    print("Labels:", labels)
 ################################################################################################
 
 #createEmbeddings(intensityFile,mode='intensity')
 sad = ['i feel very tired','i want to commit suicide']
-happy = ['i love my life','i sleep very well']
+happy = ['i love my life','i sleep as usual']
+veryHappy = ['i am happy','i feel great today']
+suicidalThoughtsOptions = ["I don't have any thoughts of killing myself.",
+                            "I have thoughts of killing myself, but I would not carry them out.",
+                            "I would like to kill myself.",
+                            "I would kill myself if I had the chance."]
+
+sentenceIntensityNLI(sad,printFlag=True,threshold=0.35)
 #sentencePresence(sad,printFlag=False)
-#sentenceIntensity(happy,printFlag=True,threshold=0.35)
+#sentenceIntensity(sad,printFlag=True,threshold=0.35)
 #processJson("rd_depression_2022_11_24_17_10_12_965065_output.json")
 #analyzer("rd_2022_10_3_18_37_13_878_output.json")
 #analyzer("tw_2022_10_3_19_5_54_567_output_1.json",source='twitter',mode='intensity')
 #findMaxIndex()
 
-# tensors = torch.tensor([[0.1599, 0.1370, 0.1933, 0.2030],
-#         [0.5391, 0.5128, 0.5068, 0.5192]])
+tensors = torch.tensor([[0.1599, 0.1370, 0.1933, 0.2030],
+         [0.5391, 0.5128, 0.5068, 0.5192]])
+
+#score for veryHappy sentences in question 1 (sadness)
+scoreVeryHappyQ1 = torch.tensor([[0.0, 0.0, 0.3541, 0.3585],
+         [0.4335, 0.4045, 0.3736, 0.0]])
+
+#testNLI(sad,suicidalThoughtsOptions)
+
+
+#analyzer('rd_query_car_2023_03_03_16_54_30_307193_output.json',source='reddit',mode='intensity')
+
+#prevalenceEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
+
+#getSentencesPoints(tensors,points,0,0)
 # filtered_tensors = filterBelowThreshold(tensors, 0.25)
 # print(filtered_tensors)
 

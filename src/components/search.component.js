@@ -40,7 +40,7 @@ export default class Search extends Component {
                             <div className="web-container search-component">
                                 <div>
                                     <LoggedNavBar 
-                                        login={this.context} 
+                                        login={context.loggedIn} 
                                     />
                                 </div>
                                 <div className='search-component'>
