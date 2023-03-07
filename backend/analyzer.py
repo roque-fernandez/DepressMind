@@ -1,4 +1,5 @@
 from sentence_transformers import SentenceTransformer,util, CrossEncoder
+from scipy.special import softmax
 import pickle
 import torch
 import json
@@ -15,7 +16,21 @@ LABEL_MAPPING = ['contradiction', 'entailment', 'neutral']
 
 bdiTitles = ['Sadness','Pessimism','Past Failure','Loss of Pleasure','Guilty Feelings','Punishment Feelings','Self-Dislike','Self-Criticalness','Suicidal Thoughts or Wishes','Crying','Agitation','Loss of Interest','Indecisiveness','Worthlessness','Loss of Energy','Changes in Sleeping Pattern','Irritability','Changes in Appetite','Concentration Difficulty','Tiredness or Fatigue','Loss of Interest in Sex']
 
-
+#class used to wrap most intense sentences and its info
+class sentenceContext:
+    def __init__(self, sentence, link, prevContext=None, folContext=None):
+        self.sentence = sentence
+        self.link = link
+        self.prevContext = prevContext
+        self.folContext = folContext
+    
+    def to_dict(self):
+        return { "sentence":self.sentence,"link":self.link,"prevContext":self.prevContext,"folContext":self.folContext}
+    
+    def __str__(self):
+        sentenceInfo = "[ Sentence:" + self.sentence + ", Link:" + self.link + ", Prev:" + self.prevContext + ", Fol:" + self.folContext + " ]"
+        return sentenceInfo
+        
 #############################################################################################################  
 # TIME ANALYSIS
 ############################################################################################################# 
@@ -30,6 +45,8 @@ def timeAnalyzer(file,source='reddit',mode='presence'):
     monthlyAnalysis = {}
     weeklyAnalysis = {}
     dailyAnalysis = {}
+    print("\n********************************")
+    print("TEMPORAL ANALYSIS")
     #get results for each time period
     for key in months:
         if mode == 'presence':
@@ -168,9 +185,50 @@ def analyzer(file,source='reddit',mode='presence'):
         # print("****************************")
         # print(sentencesLinks)
         # print("****************************")
-        result = sentenceIntensity(sentences,threshold=threshold)
-        return result, intenseSentences
-    
+        result,intenseSentences = sentenceIntensityNLI(sentences,threshold=threshold)
+        intenseSentencesContext = getSentenceContext(intenseSentences,texts,links)
+        print("****************************")
+        print("INTENSE SENTENCES")
+        for i in range(len(intenseSentencesContext)):
+            print("Question:",bdiTitles[i])
+            print(intenseSentencesContext[i])
+        print(intenseSentencesContext)
+        return result, intenseSentencesContext  
+
+#given the most intense sentences of each dimension it returns for every sentence
+#an object containing the sentence, the link to the post and context
+def getSentenceContext(intenseSentences,texts,links):
+    previousSentence = None
+    followingSentence = None
+    result = []
+    for question in intenseSentences:
+        questionSentences = []
+        for sentence in question:
+            for text in texts:
+                if sentence in text:
+                    #get the text where the sentence is written
+                    #split text by . get the index of the sentence
+                    splittedText = text.split('.')
+                    currentIndex = splittedText.index(sentence)
+                    #previous
+                    if currentIndex > 0:
+                        previousSentence =  splittedText[currentIndex - 1]
+                    #following
+                    if currentIndex < (len(splittedText)-1):
+                        followingSentence = splittedText[currentIndex + 1]
+
+                    #the index of the text is the same of the link
+                    linkIndex = texts.index(text)
+                    sentenceLink = links[linkIndex]
+            sentenceObject = sentenceContext(sentence,sentenceLink,prevContext=previousSentence,folContext=followingSentence)
+            questionSentences.append(sentenceObject.to_dict())
+        result.append(questionSentences)
+    print("QUESTIONS CONTEXT: ")
+    for question in result:
+        for stContext in question:
+            print(stContext)
+    return result
+
 
 def getTextFromJson(file,source='reddit'):
     path = outputLocation + file
@@ -245,10 +303,10 @@ def printResult(res):
 
 def sentencePresence(sentences,printFlag=False):
     prevalenceEmbeddings,questions = createEmbeddings(presenceFile)
-    print("Questions")
-    print(questions)
-    print("PrevalenceEmbeddings")
-    print(prevalenceEmbeddings)
+    # print("Questions")
+    # print(questions)
+    # print("PrevalenceEmbeddings")
+    # print(prevalenceEmbeddings)
     sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
     result = []
     questionIndex = 0
@@ -369,7 +427,7 @@ def getSentencesPoints(scores,points,maxPoints,questionIndex):
 
 def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
     intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
-    sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
+    #sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
     totalResults = []
     result = []
     questionIndex = 0
@@ -389,7 +447,7 @@ def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
                 if label[0] != 'entailment':
                     value = 0
                 else:
-                    value = score[0][1]
+                    value = softmax(score[0][1])
                 sentenceValuesForQuestion.append(value)
                 
                 if printFlag:
@@ -406,12 +464,13 @@ def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
         #get the most intense sentences for the question and append it
         mostIntenseSentences.append(intenseSentencesOfQuestion(questionResults,sentences,points,maxPoints,questionIndex))
         totalResults.append(questionResults)
+        print("Intensity for question:",maxPoints)
         questionIndex += 1
     #print("Total results:", totalResults)
     print("Result: \n",result)
     print("Intense sentences: \n",mostIntenseSentences)
 
-    return result
+    return result,mostIntenseSentences
             
 #given the scores of the sentences with the options of a question 
 #returns the index of the max value
@@ -421,7 +480,8 @@ def maxIndexOfScoresNLI(scores):
     #get the index of the max similarity 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
-            if scores[i][j] > maxSimilarity:
+            #if there is a tie we get the last value
+            if scores[i][j] >= maxSimilarity and scores[i][j] > 0:
                 maxSimilarity = scores[i][j]
                 maxSimilarityIndex = j
     return maxSimilarityIndex,maxSimilarity 
@@ -444,15 +504,16 @@ def intenseSentencesOfQuestion(scores,sentences,points,maxPoints,questionIndex):
 #returns the points for everySentence
 def getSentencesPointsNLI(scores,points,questionIndex):
     #get the question option that matches that score
+    #if there is a tie we get the last value
+    # Reverse the list and get the last index of the element (all 0 is an exception)
     questionOptions = [ l.index(max(l)) for l in scores ]
+    questionOptions = [ (len(l) - l[::-1].index(max(l)) - 1) if max(l)>0 else 0 for l in scores ]
     #get the points for the question option
     sentencesPoints = [ int(points[questionIndex][questionOption]) for questionOption in questionOptions ]
     print("Question options: ",questionOptions)
     print("Question points: ",sentencesPoints)
-    return questionOptions
+    return sentencesPoints
     
-
-
 def diagnosis(testResult):
     total = sum(testResult)
     print('******************************')
@@ -488,11 +549,11 @@ suicidalThoughtsOptions = ["I don't have any thoughts of killing myself.",
                             "I would like to kill myself.",
                             "I would kill myself if I had the chance."]
 
-sentenceIntensityNLI(sad,printFlag=True,threshold=0.35)
+#sentenceIntensityNLI(sad,printFlag=True,threshold=0.35)
 #sentencePresence(sad,printFlag=False)
 #sentenceIntensity(sad,printFlag=True,threshold=0.35)
 #processJson("rd_depression_2022_11_24_17_10_12_965065_output.json")
-#analyzer("rd_2022_10_3_18_37_13_878_output.json")
+#analyzer("demo_analyzer_short.json",mode='intensity')
 #analyzer("tw_2022_10_3_19_5_54_567_output_1.json",source='twitter',mode='intensity')
 #findMaxIndex()
 

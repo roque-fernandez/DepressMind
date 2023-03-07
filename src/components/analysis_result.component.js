@@ -34,6 +34,7 @@ export default class AnalysisResult extends Component {
     console.log("Day Index:",this.dayIndex)
     console.log("Day MaxIndex:",this.dayMaxIndex)
     //evolution of the dimensions
+    //console.log("STATISTICS: ",this.props.statistics)
     console.log("DailyStatistics:", this.props.statistics[1])
     this.formattedDailyStatistics = this.formatDailyStatisticsKeys(this.props.statistics[1])
     this.formattedDailyStatisticsKeys = Object.keys(this.formattedDailyStatistics).sort()
@@ -41,6 +42,9 @@ export default class AnalysisResult extends Component {
     console.log("Formatted keys:",this.formattedDailyStatisticsKeys)
     console.log("Non formatted:",this.props.statistics[1])
     this.dimensionEvolution = this.getDimensionsEvolutions(this.formattedDailyStatistics)
+    //most intense sentences
+    this.intenseSentences = this.props.statistics[4]
+    console.log("Intense sentences:",this.intenseSentences)
     //set title 
     if(this.props.mode === 'presence'){
       this.title = "Ocurrence"

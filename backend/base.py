@@ -9,6 +9,7 @@ import bcrypt
 import fileStatistics as fst
 import analyzer 
 
+
 outputLocation = r".\outputs\\"
 uploadLocation = r".\upload\\"
 
@@ -20,6 +21,8 @@ users = db['users']
 presence_results = db['presence_results']
 stored_results = db['results']
 intensity_results = db['intensity_results']
+
+
 
 @app.route('/reddit', methods=['GET'])
 def reddit():
@@ -85,27 +88,48 @@ def analysis():
         print("Mode, source and username: ",mode,source,username)
         f = request.files['file']
         f.save(os.path.join(uploadLocation, secure_filename(f.filename)))
-        #if we already analysed a file of a user we return the stored results
-        fileResults = stored_results.find_one({'username': username, 'filename': f.filename, 'mode':mode})
-        
-        if fileResults:
-            resultsDict = json.loads(fileResults['results'])
-            results = jsonify(resultsDict['analysis'],resultsDict['dailyAnalysis'],resultsDict['weeklyAnalysis'],resultsDict['monthlyAnalysis'])
-            print("Stored results: ", fileResults['results'])
-            print("Results dict:", resultsDict)
-            print("Analysis: ",resultsDict['analysis'])
-            return jsonify(resultsDict['analysis'],resultsDict['dailyAnalysis'],resultsDict['weeklyAnalysis'],resultsDict['monthlyAnalysis'])
-        #if we didnt analysed this file yet we analyse it
+
+        if mode == 'presence':
+            #if we already analysed a file of a user we return the stored results
+            fileResults = stored_results.find_one({'username': username, 'filename': f.filename, 'mode':mode})
+            
+            if fileResults:
+                resultsDict = json.loads(fileResults['results'])
+                # print("Stored results: ", fileResults['results'])
+                # print("Results dict:", resultsDict)
+                # print("Analysis: ",resultsDict['analysis'])
+                return jsonify(resultsDict['analysis'],resultsDict['dailyAnalysis'],resultsDict['weeklyAnalysis'],resultsDict['monthlyAnalysis'])
+            #if we didnt analysed this file yet we analyse it
+            else:
+                print("PRESENCE: FILE NOT STORED")
+                analysis= analyzer.analyzer(f.filename,mode=mode,source=source)
+                dailyAnalysis,weeklyAnalysis,monthlyAnalysis = analyzer.timeAnalyzer(f.filename,mode=mode,source=source)
+                resultsDict = {'analysis':analysis,'dailyAnalysis': dailyAnalysis, 'weeklyAnalysis': weeklyAnalysis, 'monthlyAnalysis':monthlyAnalysis}
+                #print("Results: ",json.dumps(resultsDict))
+                #write results to mongo
+                stored_results.insert_one({'username': username, 'filename': f.filename, 'mode':mode, 'results': json.dumps(resultsDict)})
+                return jsonify(analysis,dailyAnalysis,weeklyAnalysis,monthlyAnalysis)
+        #INTENSITY
         else:
-            analysis = analyzer.analyzer(f.filename,mode=mode,source=source)
-            dailyAnalysis,weeklyAnalysis,monthlyAnalysis = analyzer.timeAnalyzer(f.filename,mode=mode,source=source)
-            resultsDict = {'analysis':analysis,'dailyAnalysis': dailyAnalysis, 'weeklyAnalysis': weeklyAnalysis, 'monthlyAnalysis':monthlyAnalysis}
-            results = jsonify(analysis,dailyAnalysis,weeklyAnalysis,monthlyAnalysis)
-            print(type(results))
-            print("Results: ",json.dumps(resultsDict))
-            #write results to mongo
-            stored_results.insert_one({'username': username, 'filename': f.filename, 'mode':mode, 'results': json.dumps(resultsDict)})
-            return jsonify(analysis,dailyAnalysis,weeklyAnalysis,monthlyAnalysis)
+            #if we already analysed a file of a user we return the stored results
+            fileResults = stored_results.find_one({'username': username, 'filename': f.filename, 'mode':mode})
+            
+            if fileResults:
+                resultsDict = json.loads(fileResults['results'])
+                # print("Stored results: ", fileResults['results'])
+                # print("Results dict:", resultsDict)
+                # print("Analysis: ",resultsDict['analysis'])
+                return jsonify(resultsDict['analysis'],resultsDict['dailyAnalysis'],resultsDict['weeklyAnalysis'],resultsDict['monthlyAnalysis'],resultsDict['intenseSentences'])
+            #if we didnt analysed this file yet we analyse it
+            else:
+                analysis,intenseSentences = analyzer.analyzer(f.filename,mode=mode,source=source)
+                dailyAnalysis,weeklyAnalysis,monthlyAnalysis = analyzer.timeAnalyzer(f.filename,mode=mode,source=source)
+                resultsDict = {'analysis':analysis,'dailyAnalysis': dailyAnalysis, 'weeklyAnalysis': weeklyAnalysis, 'monthlyAnalysis':monthlyAnalysis,'intenseSentences':intenseSentences}
+                print("Results: ",json.dumps(resultsDict))
+                #write results to mongo
+                stored_results.insert_one({'username': username, 'filename': f.filename, 'mode':mode, 'results': json.dumps(resultsDict)})
+                return jsonify(analysis,dailyAnalysis,weeklyAnalysis,monthlyAnalysis,intenseSentences)
+
     except Exception as e:
         return str(e)
 
