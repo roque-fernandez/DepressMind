@@ -4,6 +4,7 @@ import pickle
 import torch
 import json
 import datetime
+import time
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 presenceFile = r".\BDI\bdi_presence.txt"
@@ -373,7 +374,7 @@ def sentenceIntensity(sentences,printFlag=False,threshold=0.2):
 
         questionIndex += 1
     printResult(result)
-    diagnosis(result)
+    #diagnosis(result)
     return result
 
 def filterBelowThreshold(tensors, threshold):
@@ -538,10 +539,30 @@ def testNLI(sentences,options):
     labels =  [LABEL_MAPPING[score_max] for score_max in scores.argmax(axis=1)]
     print("Scores:", scores)
     print("Labels:", labels)
+
+def comparacionIntensidades(sentences):
+    print("*************************************************************************************")
+    print("NLI")
+    print("*************************************************************************************")
+    start_time_1 = time.time()
+    sentenceIntensityNLI(sentences,printFlag=True,threshold=0.35)
+    end_time_1 = time.time()
+    time_1 = end_time_1 - start_time_1
+    print("*************************************************************************************")
+    print("Normal")
+    print("*************************************************************************************")
+    start_time_2 = time.time()
+    sentenceIntensity(sentences,printFlag=True,threshold=0.35)
+    end_time_2 = time.time()
+    time_2 = end_time_2 - start_time_2
+    print("*************************************************************************************")
+    print("Tiempo NLI: ", time_1)
+    print("Tiempo normal: ", time_2)
+    print("*************************************************************************************")
 ################################################################################################
 
 #createEmbeddings(intensityFile,mode='intensity')
-sad = ['i feel very tired','i want to commit suicide']
+sad = ['i feel very tired','i want to commit suicide','everything i have done in my life is wrong']
 happy = ['i love my life','i sleep as usual']
 veryHappy = ['i am happy','i feel great today']
 suicidalThoughtsOptions = ["I don't have any thoughts of killing myself.",
@@ -550,6 +571,11 @@ suicidalThoughtsOptions = ["I don't have any thoughts of killing myself.",
                             "I would kill myself if I had the chance."]
 
 #sentenceIntensityNLI(sad,printFlag=True,threshold=0.35)
+#print("*************************************************************************************")
+#sentenceIntensity(sad,printFlag=True,threshold=0.35)
+
+#comparacionIntensidades(sad)
+
 #sentencePresence(sad,printFlag=False)
 #sentenceIntensity(sad,printFlag=True,threshold=0.35)
 #processJson("rd_depression_2022_11_24_17_10_12_965065_output.json")

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import LoggedNavBar from './logged_navbar.component'
+import IntenseSentences from './intense_sentences.component';
 import { loginContext } from "../context/LoginContext"
 import Plot from 'react-plotly.js';
 
@@ -19,6 +20,7 @@ export default class AnalysisResult extends Component {
     this.getDimensionsEvolutions = this.getDimensionsEvolutions.bind(this);
     this.dateFormat = this.dateFormat.bind(this);
     this.formatDailyStatisticsKeys = this.formatDailyStatisticsKeys.bind(this);
+    this.showIntenseSentences = this.showIntenseSentences.bind(this);
 
     //index for the time analysis
     this.monthMaxIndex = Object.keys(this.props.statistics[3]).length - 1;
@@ -68,7 +70,9 @@ export default class AnalysisResult extends Component {
       dayNextButton: true,
       dayPreviousButton: false,
       //type of time analysis
-      timeAnalysis: 'weekly'
+      timeAnalysis: 'weekly',
+      //flag to show intense sentences
+      flagIntenseSentences:false
     }
   }
 
@@ -265,8 +269,17 @@ export default class AnalysisResult extends Component {
     }
   }
 
+  showIntenseSentences(){
+    this.setState({ flagIntenseSentences: true })
+  }
+
   render() {
     if(this.context.loggedIn ){
+      if(this.state.flagIntenseSentences){
+        return(
+          <IntenseSentences sentences = {this.intenseSentences} analysis = {this.state.generalStatistics} />
+        )
+      }
       return (
         <div className="web-container">
             <LoggedNavBar/>
@@ -294,6 +307,13 @@ export default class AnalysisResult extends Component {
                     ]}
                     layout={ {width: 550, height: 440, title: this.state.mode} }
                   />
+
+                  <div className="d-grid centered-button">
+                    <button onClick={this.showIntenseSentences} className="btn btn-primary">
+                      Most intense sentences
+                    </button>
+                  </div>
+
                 </div>
 
                 :
