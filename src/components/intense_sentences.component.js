@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import LoggedNavBar from './logged_navbar.component'
 import { loginContext } from "../context/LoginContext"
 import SentenceTable from "./sentence_table.component";
+import  ExpandedRow from "./expanded_row.component";
 
 export default class IntenseSentences extends Component {
 
@@ -50,10 +51,15 @@ export default class IntenseSentences extends Component {
             <h1>Most intense sentences</h1>
 
             <div>
-              <SentenceTable />
+              {this.nonZeroIndexes.map((i) => (
+                  <>
+                    <SentenceTable key={i} title={this.BDITitles[i]} data={this.props.sentences[i]}/>
+                  </>
+              ))}
+                
             </div>
 
-            <div>
+            <div style={{marginTop: '2em'}}>
                 <h6>The following dimensions do not score</h6>
                 <div>
                     {this.zeroIndexes.map((i) => (
