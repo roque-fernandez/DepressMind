@@ -12,6 +12,7 @@ export default class RedditSearch extends Component {
         this.printType = this.printType.bind(this);
         this.getData = this.getData.bind(this);
         this.handleSearchChange = this.handleSearchChange.bind(this);
+        this.handleSearchTypeChange = this.handleSearchTypeChange.bind(this);
         this.parseJSONLines = this.parseJSONLines.bind(this);
         
         this.loading = false;
@@ -36,7 +37,8 @@ export default class RedditSearch extends Component {
             loading: false,
             download: false,
             error: false,
-            jsonResults: null
+            jsonResults: null,
+            flagButton: false
         }
     }
 
@@ -135,22 +137,54 @@ export default class RedditSearch extends Component {
         let field = event.target.name;
         let value = event.target.value;
         this.state.search[field] = value;
-        return this.setState({search: this.state.search});
+        this.setState({search: this.state.search});
+        
+        if(this.state.search.type == "Subreddit"){
+            if(this.state.search.subreddit){
+                this.setState({flagButton: true});   
+            }
+            else{
+                this.setState({flagButton: false});
+            }
+        }
+        else if(this.state.search.type == "User"){
+            if(this.state.search.username){
+                this.setState({flagButton: true});   
+            }
+            else{
+                this.setState({flagButton: false});
+            }
+        }
+        else if(this.state.search.type == "Keyword"){
+            if(this.state.search.keyword){
+                this.setState({flagButton: true});   
+            }
+            else{
+                this.setState({flagButton: false});
+            }
+        }
     };
+
+    handleSearchTypeChange(event) {
+        let field = event.target.name;
+        let value = event.target.value;
+        this.state.search[field] = value;
+        this.setState({search: this.state.search});
+        this.setState({flagButton: false}); 
+    };
+
+   
 
 
     render() {
         if(this.jsonResults){
             return (
-               
                     <SearchResult 
                         link={this.downloadLink} 
                         statistics={this.statistics}
                         jsonResults={this.jsonResults}
                         textField="text"
                     />
-                  
-                
             )
         }
         else{
@@ -160,7 +194,7 @@ export default class RedditSearch extends Component {
     
                     <div className="mb-3">
                         <label htmlFor="typeInput">Type of search</label>
-                        <select className="form-select" id="typeInput" name="type" onChange={this.handleSearchChange} aria-label="Default select example">
+                        <select className="form-select" id="typeInput" name="type" onChange={this.handleSearchTypeChange} aria-label="Default select example">
                         <option defaultValue="Subreddit">Subreddit</option>
                             <option value="Generalist">Generalist</option>
                             <option value="Keyword">Keyword</option>
@@ -216,7 +250,7 @@ export default class RedditSearch extends Component {
     
     
                     <div className="d-grid">
-                        <button type="button" disabled={this.state.loading} className="btn btn-primary" onClick={this.getData}>Search</button>
+                        <button type="button" disabled={!this.state.flagButton} className="btn btn-primary" onClick={this.getData}>Search</button>
                     </div>
 
                     {this.state.loading ?

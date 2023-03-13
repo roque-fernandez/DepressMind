@@ -2,14 +2,16 @@ import React from "react";
 
 export default class ExpandedRow extends React.Component {
     render() {
-        const { sentence, previousContext, link, folContext } = this.props.data;
+        const { sentence, prevContext, link, folContext } = this.props.data;
     
         console.log("Data: ",this.props.data);
         return (
             <div>
                 <div style={{marginTop: '1em'}}>
                     <p>
-                        {previousContext}. <span style={{ color: "red" }}> {sentence}. </span> {folContext}.                        
+                    {prevContext && <span>{prevContext}. </span>}
+                    <span style={{ color: "red" }}>{sentence}. </span>
+                    {folContext && <span>{folContext}.</span>}                    
                     </p>
                 </div>  
                 

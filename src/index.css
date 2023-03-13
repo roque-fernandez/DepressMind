@@ -41,7 +41,8 @@ body, html, .App, #root, .auth-wrapper {
 
   position: absolute;
   top: 6em;
-  left: 26.5%;
+  left: 0;
+  right: 0;
 }
 .auth-wrapper .form-control:focus {
   border-color: #167bff;

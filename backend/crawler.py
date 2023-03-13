@@ -119,114 +119,121 @@ def redditHeader(query, limit, votes, since, until, outfile):
     print("***********************************************************************\n")
 
 def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, outputName=None):
-    url = 'https://old.reddit.com/r/' + subreddit
-    if since is None:
-        since = "1970-01-01"
-    if until is None:
-        until = datetime.today().strftime('%Y-%m-%d')
+    try:
+        url = 'https://old.reddit.com/r/' + subreddit
+        if since is None:
+            since = "1970-01-01"
+        if until is None:
+            until = datetime.today().strftime('%Y-%m-%d')
 
-    writingMode = 'a'
+        writingMode = 'a'
 
-    # Headers to mimic a browser visit
-    headers = {'User-Agent': 'Mozilla/5.0'}
+        # Headers to mimic a browser visit
+        headers = {'User-Agent': 'Mozilla/5.0'}
 
-    # Returns a requests.models.Response object
-    page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(page.text, 'html.parser')
+        # Returns a requests.models.Response object
+        page = requests.get(url, headers=headers)
+        soup = BeautifulSoup(page.text, 'html.parser')
+        
+        #check if subreddit exists
+        if not soup.find("body", class_="listing-page"):
+            raise Exception("{} subreddit does not exist".format(subreddit))
 
-    # giving name to the output
-    if outputName is None:
-        outputName = "rd_" + subreddit + "_" + datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
-        writingMode = 'w'
+        # giving name to the output
+        if outputName is None:
+            outputName = "rd_" + subreddit + "_" + datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
+            writingMode = 'w'
 
-    # printing information
-    redditHeader(subreddit, limit, votes, since, until, outputName)
+        # printing information
+        redditHeader(subreddit, limit, votes, since, until, outputName)
 
-    count = 0
-    invalidLinkCount = 0
-    invalidLinkLimit = 25
+        count = 0
+        invalidLinkCount = 0
+        invalidLinkLimit = 25
 
-    with open(os.path.join(os.path.expanduser('.'),outputFolder,outputName), writingMode) as outfile:
+        with open(os.path.join(os.path.expanduser('.'),outputFolder,outputName), writingMode) as outfile:
 
-        while count <= limit:
+            while count <= limit:
 
-            # get links to the comments of every post in the main page
-            for link in soup.findAll("a", {"class": ["title may-blank", "title may-blank outbound"]}):
-                postLink = link.get("href")
-                print("Postlink: ",postLink)
+                # get links to the comments of every post in the main page
+                for link in soup.findAll("a", {"class": ["title may-blank", "title may-blank outbound"]}):
+                    postLink = link.get("href")
+                    print("Postlink: ",postLink)
 
-                if postLink.split("/")[0] == "https:":
-                    print("Not valid link: ",postLink)
-                    invalidLinkCount+=1
-                    if invalidLinkCount > invalidLinkLimit:
-                        print("This subreddit probably contains only links.")
-                        return count,outputName
-                    continue
-
-                commentsPageUrl = 'https://old.reddit.com' + postLink
-                invalidLinkCount = 0
-                print(commentsPageUrl)
-
-                try:
-                    commentsPage = requests.get(commentsPageUrl, headers=headers)
-                    commentsPageSoup = BeautifulSoup(commentsPage.text, 'html.parser')
-
-                    # POST
-                    postSoup = commentsPageSoup.find("div", class_="sitetable linklisting")
-                    post = getPostInfo(postSoup)
-                    print("Post initiated")
-
-
-                    if int(post.votes) < votes:
+                    if postLink.split("/")[0] == "https:":
+                        print("Not valid link: ",postLink)
+                        invalidLinkCount+=1
+                        if invalidLinkCount > invalidLinkLimit:
+                            print("This subreddit probably contains only links.")
+                            return count,outputName
                         continue
-                    if not dateInRange(since, until, post.date):
-                        continue
-                    # check limit
-                    if count >= limit:
-                        print("Limit reached at ", count, " posts")
+
+                    commentsPageUrl = 'https://old.reddit.com' + postLink
+                    invalidLinkCount = 0
+                    print(commentsPageUrl)
+
+                    try:
+                        commentsPage = requests.get(commentsPageUrl, headers=headers)
+                        commentsPageSoup = BeautifulSoup(commentsPage.text, 'html.parser')
+
+                        # POST
+                        postSoup = commentsPageSoup.find("div", class_="sitetable linklisting")
+                        post = getPostInfo(postSoup)
+                        print("Post initiated")
+
+
+                        if int(post.votes) < votes:
+                            continue
+                        if not dateInRange(since, until, post.date):
+                            continue
+                        # check limit
+                        if count >= limit:
+                            print("Limit reached at ", count, " posts")
+                            return count,outputName
+                        print("Post: ", post.username)
+
+                        # writing the object to json file
+                        writePostToJson(post, outfile)
+                        count += 1
+                    except Exception as e:
+                        print("Error ocurred getting post info: ",e)
+
+                    # COMMENTS OF THE POST
+                    # we dont want the first comment because it is the title
+                    for commentSoup in commentsPageSoup.findAll("div", class_="entry unvoted")[1:]:
+                        # check if is a valid comment (not deleted)
+                        taglineContent = commentSoup.find("p", class_="tagline").text
+
+                        if (taglineContent and not "[deleted]" in taglineContent):
+                            try:
+                                comment = getCommentInfo(commentSoup,link=postLink)
+
+                                if not dateInRange(since, until, comment.date):
+                                    continue
+                                # check limit
+                                if (count >= limit):
+                                    print("LIMIT REACHED ", count, " posts")
+                                    return count,outputName
+
+                                # writing the object to json file
+                                writePostToJson(comment, outfile)
+
+                                count += 1
+                            except Exception as e:
+                                print("Error ocurred getting comment info: ",e)
+                    print("N comments written:", count)
+
+                    # move to the next page of the subreddit
+                    if soup.find("a", rel="nofollow next") is not None:
+                        newUrl = soup.find("a", rel="nofollow next").get("href")
+                        print("New url: ", newUrl)
+                        page = requests.get(newUrl, headers=headers)
+                        soup = BeautifulSoup(page.text, 'html.parser')
+                    else:
+                        print("Last page of subreddit")
                         return count,outputName
-                    print("Post: ", post.username)
-
-                    # writing the object to json file
-                    writePostToJson(post, outfile)
-                    count += 1
-                except Exception as e:
-                    print("Error ocurred getting post info: ",e)
-
-                # COMMENTS OF THE POST
-                # we dont want the first comment because it is the title
-                for commentSoup in commentsPageSoup.findAll("div", class_="entry unvoted")[1:]:
-                    # check if is a valid comment (not deleted)
-                    taglineContent = commentSoup.find("p", class_="tagline").text
-
-                    if (taglineContent and not "[deleted]" in taglineContent):
-                        try:
-                            comment = getCommentInfo(commentSoup,link=postLink)
-
-                            if not dateInRange(since, until, comment.date):
-                                continue
-                            # check limit
-                            if (count >= limit):
-                                print("LIMIT REACHED ", count, " posts")
-                                return count,outputName
-
-                            # writing the object to json file
-                            writePostToJson(comment, outfile)
-
-                            count += 1
-                        except Exception as e:
-                            print("Error ocurred getting comment info: ",e)
-                print("N comments written:", count)
-
-                # move to the next page of the subreddit
-                if soup.find("a", rel="nofollow next") is not None:
-                    newUrl = soup.find("a", rel="nofollow next").get("href")
-                    print("New url: ", newUrl)
-                    page = requests.get(newUrl, headers=headers)
-                    soup = BeautifulSoup(page.text, 'html.parser')
-                else:
-                    print("Last page of subreddit")
-                    return count,outputName
+    except Exception as e:
+        print("Error ocurred crawling subreddit: ",e)
 
 def redditGeneralistCrawler(limit=1000, limitPerSubreddit=50, votes=0, since=None, until=None):
     url = 'https://old.reddit.com/new/'
@@ -292,6 +299,11 @@ def redditUserCrawler(username, limit=1000, votes=0, since=None, until=None):
     # Returns a requests.models.Response object
     page = requests.get(url, headers=headers)
     soup = BeautifulSoup(page.text, 'html.parser')
+
+    #check if user exists
+    if not soup.find("body", class_="listing-page"):
+        raise Exception("{} is not a valid user".format(username))
+
     count = 0
 
     with open(os.path.join(os.path.expanduser('.'),outputFolder,outputName), 'w') as outfile:
@@ -366,6 +378,11 @@ def redditQueryCrawler(query, limit=1000, votes=0, since=None, until=None):
     # Returns a requests.models.Response object
     page = requests.get(url, headers=headers)
     soup = BeautifulSoup(page.text, 'html.parser')
+
+    #check if query has results
+    if not soup.find("div", class_="search-result"):
+        raise Exception("The search returned no results for {} query".format(query))
+
     count = 0
 
     with open(os.path.join(os.path.expanduser('.'),outputFolder,outputName), 'w') as outfile:

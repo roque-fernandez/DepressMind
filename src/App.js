@@ -21,23 +21,21 @@ function App() {
         <div className="auth-wrapper">
           <div className="auth-inner">
           <loginContext.Provider value={{ loggedIn, setLoggedIn }}>
-            <Routes>
-              <Route exact path="/" element={<Login />} />
-              <Route path="/sign-in" element={<Login />} />
-              <Route path="/sign-up" element={<SignUp />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/analysis" element={<Analysis />} />
-            </Routes>
+            
+              <Routes>
+                <Route exact path="/" element={<Login />} />
+                <Route path="/sign-in" element={<Login />} />
+                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/analysis" element={<Analysis />} />
+              </Routes>
+            
+            
             </loginContext.Provider>
           </div>
         </div>
       </div>
     </Router>
-
-      {/* <loginContext.Consumer>           
-        <Search />
-        <Analysis />
-      </loginContext.Consumer>  */}
     </>
     
 
