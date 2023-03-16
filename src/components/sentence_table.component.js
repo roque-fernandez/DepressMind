@@ -16,41 +16,53 @@ export default class SentenceTable extends React.Component {
     constructor(props) {
         super(props);
 
-        console.log("Sentences in table ", this.props.title, ": ", this.props.data)
+        console.log("Sentences in table ", this.props.title, ": ", this.props.data, " puntos->",this.props.points)
+
+        // this.columns = [
+        //     {
+        //     // name: "Sentence",
+        //     selector: (row) => row.sentence,
+        //     sortable: true,
+        //     cell: (row) => <div>{row.sentence}</div>,
+        //     },
+        // ];
 
         this.columns = [
             {
-            // name: "Sentence",
-            selector: (row) => row.sentence,
-            sortable: true,
-            cell: (row) => <div>{row.sentence}</div>,
+                name: <span style={{ fontSize: "x-large" }}>{this.props.title}</span>,
+                selector: (row) => row.sentence,
+                sortable: true,
+                cell: (row) => {
+                    let color;
+                    switch (this.props.points) {
+                    case 1:
+                        color = "rgba(255, 195, 0, 1)";
+                        break;
+                    case 2:
+                        color = "rgba(255, 123, 0, 1)";
+                        break;
+                    case 3:
+                        color = "red";
+                        break;
+                    default:
+                        color = "black";
+                        break;
+                    }
+                    return (
+                    <div style={{ color: color }}>
+                        {row.sentence}
+                    </div>
+                    )
+                },
             },
         ];
 
+        this.augmentedData = this.props.data.map(obj => {
+            return { ...obj, points: this.props.points };
+        });
+
         this.state = {
-            data: [
-                {
-                sentence: "This is the first sentence",
-                previousContext: "There was nothing before this",
-                link: "https://example.com",
-                folContext: "This is the second sentence",
-                showDetails: false,
-                },
-                {
-                sentence: "This is the second sentence",
-                previousContext: "This is the first sentence",
-                link: "https://example.com",
-                folContext: "This is the third sentence",
-                showDetails: false,
-                },
-                {
-                sentence: "This is the third sentence",
-                previousContext: "This is the second sentence",
-                link: "https://example.com",
-                folContext: "There is nothing after this",
-                showDetails: false,
-                },
-            ],
+            
         };
     }
 
@@ -66,13 +78,12 @@ export default class SentenceTable extends React.Component {
     render() {
         return (
             <DataTable
-            title={this.props.title + " - " + this.props.points + " points"}
-            columns={this.columns}
-            data={this.props.data}
-            expandableRows
-            expandableRowsComponent={ExpandedRow} // <--- change here
-            expandableRowExpanded={(row) =>
-                row.showDetails ? <ExpandedRow data={row} /> : null
+                columns={this.columns}
+                data={this.augmentedData}
+                expandableRows
+                expandableRowsComponent={ExpandedRow} // <--- change here
+                expandableRowExpanded={(row) =>
+                    row.showDetails ? <ExpandedRow data={row}/> : null
             }
             onRowClicked={this.handleRowClick}
             theme="customTheme"

@@ -47,7 +47,14 @@ export default class IntenseSentences extends Component {
       return (
         <div className="web-container">
             <LoggedNavBar/>
-            <h1>Most intense sentences</h1>
+            <h1>BDI evidence</h1>
+
+            <div>
+              <h3>Graphic legend:</h3>
+              <h4 style={{color: "rgba(255, 195, 0, 1)"}}>● Low</h4>
+              <h4 style={{color: "rgba(255, 123, 0, 1)"}}>● Medium</h4>
+              <h4 style={{color: "red"}}>● High</h4>
+            </div>
 
             <div>
               {this.nonZeroIndexes.map((i) => (
