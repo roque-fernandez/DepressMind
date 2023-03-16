@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { loginContext } from "../context/LoginContext"
 import ReactWordcloud from 'react-wordcloud';
 import { removeStopwords, eng, spa } from 'stopword'
+import PreviewTable from './search_result_table.component';
 
 
 export default class SearchResult extends Component {
@@ -170,7 +171,7 @@ export default class SearchResult extends Component {
                     <div className="mb-3">
                         <h4>Preview</h4>
                         
-                        <table className='resultsTable'>
+                        {/* <table className='resultsTable'>
                             <thead>
                                 <tr>
                                     <th>Username</th>
@@ -187,7 +188,9 @@ export default class SearchResult extends Component {
                                 );
                             })}
                             </tbody>
-                        </table> 
+                        </table>  */}
+
+                        <PreviewTable data={this.tableData}/>
                     </div>
                     
                     

@@ -1,10 +1,10 @@
 from sentence_transformers import SentenceTransformer,util, CrossEncoder
 from scipy.special import softmax
-import pickle
 import torch
 import json
 import datetime
 import time
+import nltk
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 presenceFile = r".\BDI\bdi_presence.txt"
@@ -174,7 +174,7 @@ def analyzer(file,source='reddit',mode='presence'):
     sentencesLinks = []
     sentences = []
     for t,l in zip(texts,links):
-        splittedText = t.split('.')
+        splittedText = nltk.sent_tokenize(t)
         for st in splittedText:
             sentences.append(st)
             sentencesLinks.append(l)
@@ -182,34 +182,30 @@ def analyzer(file,source='reddit',mode='presence'):
         result = sentencePresence(sentences)
         return result 
     else:
-        # print(sentences)
-        # print("****************************")
-        # print(sentencesLinks)
-        # print("****************************")
         result,intenseSentences = sentenceIntensityNLI(sentences,threshold=threshold)
         intenseSentencesContext = getSentenceContext(intenseSentences,texts,links)
         print("****************************")
-        print("INTENSE SENTENCES")
+        print("RESULTS")
         for i in range(len(intenseSentencesContext)):
             print("Question:",bdiTitles[i])
-            print(intenseSentencesContext[i])
-        print(intenseSentencesContext)
+            print("Score:",result[i])
+            print("Intense sentence:",intenseSentencesContext[i])
         return result, intenseSentencesContext  
 
 #given the most intense sentences of each dimension it returns for every sentence
 #an object containing the sentence, the link to the post and context
 def getSentenceContext(intenseSentences,texts,links):
-    previousSentence = None
-    followingSentence = None
     result = []
     for question in intenseSentences:
         questionSentences = []
         for sentence in question:
+            previousSentence = None
+            followingSentence = None
             for text in texts:
                 if sentence in text:
                     #get the text where the sentence is written
                     #split text by . get the index of the sentence
-                    splittedText = text.split('.')
+                    splittedText = nltk.sent_tokenize(text)
                     currentIndex = splittedText.index(sentence)
                     #previous
                     if currentIndex > 0:
@@ -224,12 +220,7 @@ def getSentenceContext(intenseSentences,texts,links):
             sentenceObject = sentenceContext(sentence,sentenceLink,prevContext=previousSentence,folContext=followingSentence)
             questionSentences.append(sentenceObject.to_dict())
         result.append(questionSentences)
-    print("QUESTIONS CONTEXT: ")
-    for question in result:
-        for stContext in question:
-            print(stContext)
     return result
-
 
 def getTextFromJson(file,source='reddit'):
     path = outputLocation + file

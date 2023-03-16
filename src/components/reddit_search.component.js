@@ -139,7 +139,7 @@ export default class RedditSearch extends Component {
         this.state.search[field] = value;
         this.setState({search: this.state.search});
         
-        if(this.state.search.type == "Subreddit"){
+        if(this.state.search.type === "Subreddit"){
             if(this.state.search.subreddit){
                 this.setState({flagButton: true});   
             }
@@ -147,7 +147,7 @@ export default class RedditSearch extends Component {
                 this.setState({flagButton: false});
             }
         }
-        else if(this.state.search.type == "User"){
+        else if(this.state.search.type === "User"){
             if(this.state.search.username){
                 this.setState({flagButton: true});   
             }
@@ -155,7 +155,7 @@ export default class RedditSearch extends Component {
                 this.setState({flagButton: false});
             }
         }
-        else if(this.state.search.type == "Keyword"){
+        else if(this.state.search.type === "Keyword"){
             if(this.state.search.keyword){
                 this.setState({flagButton: true});   
             }
@@ -170,11 +170,15 @@ export default class RedditSearch extends Component {
         let value = event.target.value;
         this.state.search[field] = value;
         this.setState({search: this.state.search});
-        this.setState({flagButton: false}); 
+
+        if(this.state.search.type === "Generalist"){
+            this.setState({flagButton: true}); 
+        }
+        else{
+            this.setState({flagButton: false}); 
+        }
+        
     };
-
-   
-
 
     render() {
         if(this.jsonResults){

@@ -14,43 +14,43 @@ createTheme("customTheme", {
 
 export default class SentenceTable extends React.Component {
     constructor(props) {
-    super(props);
+        super(props);
 
-    console.log("Sentences in table ", this.props.title, ": ", this.props.data)
+        console.log("Sentences in table ", this.props.title, ": ", this.props.data)
 
-    this.columns = [
-        {
-        // name: "Sentence",
-        selector: (row) => row.sentence,
-        sortable: true,
-        cell: (row) => <div>{row.sentence}</div>,
-        },
-    ];
+        this.columns = [
+            {
+            // name: "Sentence",
+            selector: (row) => row.sentence,
+            sortable: true,
+            cell: (row) => <div>{row.sentence}</div>,
+            },
+        ];
 
-    this.state = {
-        data: [
-            {
-            sentence: "This is the first sentence",
-            previousContext: "There was nothing before this",
-            link: "https://example.com",
-            folContext: "This is the second sentence",
-            showDetails: false,
-            },
-            {
-            sentence: "This is the second sentence",
-            previousContext: "This is the first sentence",
-            link: "https://example.com",
-            folContext: "This is the third sentence",
-            showDetails: false,
-            },
-            {
-            sentence: "This is the third sentence",
-            previousContext: "This is the second sentence",
-            link: "https://example.com",
-            folContext: "There is nothing after this",
-            showDetails: false,
-            },
-        ],
+        this.state = {
+            data: [
+                {
+                sentence: "This is the first sentence",
+                previousContext: "There was nothing before this",
+                link: "https://example.com",
+                folContext: "This is the second sentence",
+                showDetails: false,
+                },
+                {
+                sentence: "This is the second sentence",
+                previousContext: "This is the first sentence",
+                link: "https://example.com",
+                folContext: "This is the third sentence",
+                showDetails: false,
+                },
+                {
+                sentence: "This is the third sentence",
+                previousContext: "This is the second sentence",
+                link: "https://example.com",
+                folContext: "There is nothing after this",
+                showDetails: false,
+                },
+            ],
         };
     }
 
@@ -66,7 +66,7 @@ export default class SentenceTable extends React.Component {
     render() {
         return (
             <DataTable
-            title={this.props.title}
+            title={this.props.title + " - " + this.props.points + " points"}
             columns={this.columns}
             data={this.props.data}
             expandableRows

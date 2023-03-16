@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import LoggedNavBar from './logged_navbar.component'
 import { loginContext } from "../context/LoginContext"
 import SentenceTable from "./sentence_table.component";
-import  ExpandedRow from "./expanded_row.component";
 
 export default class IntenseSentences extends Component {
 
@@ -53,7 +52,7 @@ export default class IntenseSentences extends Component {
             <div>
               {this.nonZeroIndexes.map((i) => (
                   <>
-                    <SentenceTable key={i} title={this.BDITitles[i]} data={this.props.sentences[i]}/>
+                    <SentenceTable key={i} title={this.BDITitles[i]} data={this.props.sentences[i]} points={this.props.analysis[i]}/>
                   </>
               ))}
                 

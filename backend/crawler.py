@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 
 outputFolder='outputs'
 
-
 ########################################################################################################################
 
 def twitterHeader(search, username, language, limit, since, until, coordinates, outfile):
@@ -22,7 +21,6 @@ def twitterHeader(search, username, language, limit, since, until, coordinates, 
     print("Results available at", outfile, "\n")
     print("***********************************************************************")
     print("***********************************************************************\n")
-
 
 def twitterCrawler(search=None, username=None, language='es', limit=100, since=None, until=None, coordinates=None):
     fileUsername = ''
@@ -53,7 +51,6 @@ def twitterCrawler(search=None, username=None, language='es', limit=100, since=N
     twint.run.Search(c)
     return outfile
 
-
 ########################################################################################################################
 
 class redditPost:
@@ -63,7 +60,6 @@ class redditPost:
         self.date = date
         self.votes = votes
         self.link = link
-
 
 def getPostInfo(soup):
     postVotes = soup.find("div", class_="score unvoted").text
@@ -468,7 +464,6 @@ def commandLineParser():
         subredditCrawler(subreddit, limit=limit, votes=votes, since=since, until=until)
     else:
         print("Error")
-
 
 ########################################################################################################################
 #commandLineParser()

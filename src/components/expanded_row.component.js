@@ -9,9 +9,9 @@ export default class ExpandedRow extends React.Component {
             <div>
                 <div style={{marginTop: '1em'}}>
                     <p>
-                    {prevContext && <span>{prevContext}. </span>}
-                    <span style={{ color: "red" }}>{sentence}. </span>
-                    {folContext && <span>{folContext}.</span>}                    
+                    {prevContext && <span>{prevContext} </span>}
+                    <span style={{ color: "red" }}>{sentence} </span>
+                    {folContext && <span>{folContext}</span>}                    
                     </p>
                 </div>  
                 
