@@ -87,7 +87,7 @@ export default class SentenceTable extends React.Component {
             }
             onRowClicked={this.handleRowClick}
             theme="customTheme"
-        />
+            />
         );
     }
 }

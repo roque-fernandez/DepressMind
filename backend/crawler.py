@@ -4,7 +4,8 @@ import json
 import sys
 import re
 import os
-from datetime import datetime
+import time
+import datetime
 from bs4 import BeautifulSoup
 
 outputFolder='outputs'
@@ -81,9 +82,8 @@ def getPostInfo(soup):
 def writePostToJson(post, outfile):
     jsonPost = json.dumps(post.__dict__, indent=1)
     outfile.write(jsonPost)
-    print("_________________")
+    print("----------------------------------")
     print(jsonPost)
-    print("_________________")
 
 def getCommentInfo(soup,link=None):
     usernameRegex = re.compile('.*author.*')
@@ -94,7 +94,10 @@ def getCommentInfo(soup,link=None):
 
     return redditPost(commentUsername, commentText, commentDate, link=commentLink)
 
+#compare 
 def dateInRange(since, until, date):
+    #parsedDate = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
+    #if dateTimestamp > since and dateTimestamp < until:
     if date > since and date < until:
         return True
     return False
@@ -120,7 +123,7 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
         if since is None:
             since = "1970-01-01"
         if until is None:
-            until = datetime.today().strftime('%Y-%m-%d')
+            until = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
         writingMode = 'a'
 
@@ -137,7 +140,7 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
 
         # giving name to the output
         if outputName is None:
-            outputName = "rd_" + subreddit + "_" + datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
+            outputName = "rd_" + subreddit + "_" + datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
             writingMode = 'w'
 
         # printing information
@@ -154,7 +157,7 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
                 # get links to the comments of every post in the main page
                 for link in soup.findAll("a", {"class": ["title may-blank", "title may-blank outbound"]}):
                     postLink = link.get("href")
-                    print("Postlink: ",postLink)
+                    #print("Postlink: ",postLink)
 
                     if postLink.split("/")[0] == "https:":
                         print("Not valid link: ",postLink)
@@ -166,7 +169,8 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
 
                     commentsPageUrl = 'https://old.reddit.com' + postLink
                     invalidLinkCount = 0
-                    print(commentsPageUrl)
+                    print("*************************************************************************")
+                    print("Working on a new post: ",commentsPageUrl)
 
                     try:
                         commentsPage = requests.get(commentsPageUrl, headers=headers)
@@ -175,18 +179,19 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
                         # POST
                         postSoup = commentsPageSoup.find("div", class_="sitetable linklisting")
                         post = getPostInfo(postSoup)
-                        print("Post initiated")
-
 
                         if int(post.votes) < votes:
+                            print("Post doesn't meet votes requirement")
                             continue
                         if not dateInRange(since, until, post.date):
+                            print("Date: ",post.date)
+                            print("Post doesn't meet date requirement")
                             continue
+
                         # check limit
                         if count >= limit:
                             print("Limit reached at ", count, " posts")
                             return count,outputName
-                        print("Post: ", post.username)
 
                         # writing the object to json file
                         writePostToJson(post, outfile)
@@ -204,7 +209,10 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
                             try:
                                 comment = getCommentInfo(commentSoup,link=postLink)
 
+                                
                                 if not dateInRange(since, until, comment.date):
+                                    print("Date: ",comment.date)
+                                    print("Post doesn't meet date requirement")
                                     continue
                                 # check limit
                                 if (count >= limit):
@@ -219,15 +227,15 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
                                 print("Error ocurred getting comment info: ",e)
                     print("N comments written:", count)
 
-                    # move to the next page of the subreddit
-                    if soup.find("a", rel="nofollow next") is not None:
-                        newUrl = soup.find("a", rel="nofollow next").get("href")
-                        print("New url: ", newUrl)
-                        page = requests.get(newUrl, headers=headers)
-                        soup = BeautifulSoup(page.text, 'html.parser')
-                    else:
-                        print("Last page of subreddit")
-                        return count,outputName
+                # move to the next page of the subreddit
+                if soup.find("a", rel="nofollow next") is not None:
+                    newUrl = soup.find("a", rel="nofollow next").get("href")
+                    print("Crawling a NEW PAGE: ", newUrl)
+                    page = requests.get(newUrl, headers=headers)
+                    soup = BeautifulSoup(page.text, 'html.parser')
+                else:
+                    print("Last page of subreddit")
+                    return count,outputName
     except Exception as e:
         print("Error ocurred crawling subreddit: ",e)
 
@@ -467,7 +475,7 @@ def commandLineParser():
 
 ########################################################################################################################
 #commandLineParser()
-#subredditCrawler('depression',votes=0,limit=1000)
+#subredditCrawler('depression',votes=0,limit=1000,since="2023-03-19")
 #subredditCrawler('depression_help',votes=0,limit=100)
 
 #prueba()

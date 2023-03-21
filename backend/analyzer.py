@@ -29,7 +29,13 @@ class sentenceContext:
         return { "sentence":self.sentence,"link":self.link,"prevContext":self.prevContext,"folContext":self.folContext}
     
     def __str__(self):
-        sentenceInfo = "[ Sentence:" + self.sentence + ", Link:" + self.link + ", Prev:" + self.prevContext + ", Fol:" + self.folContext + " ]"
+        prevSentence = self.prevContext
+        folSentence = self.folContext
+        if self.prevContext == None:
+            prevSentence = ""
+        if self.folContext == None:
+            folSentence = ""
+        sentenceInfo = "[ Sentence:" + self.sentence + ", Link:" + self.link + ", Prev:" + prevSentence + ", Fol:" + folSentence + " ]"
         return sentenceInfo
         
 #############################################################################################################  
@@ -173,52 +179,95 @@ def analyzer(file,source='reddit',mode='presence'):
     texts,links = getTextFromJson(file,source=source)
     sentencesLinks = []
     sentences = []
-    for t,l in zip(texts,links):
+    #dictionary where the key is the index of the sentence the value is the context of that sentence
+    contextDict = {}
+    stId = 0
+    #create dictionary of context and list of sentences
+    for i,t in enumerate(texts):
         splittedText = nltk.sent_tokenize(t)
-        for st in splittedText:
+        for j,st in enumerate(splittedText):
+            #append sentence to the list
             sentences.append(st)
-            sentencesLinks.append(l)
+            #CONTEXT
+            previousSentence = ""
+            followingSentence = ""
+            #previous
+            if j > 0:
+                previousSentence =  splittedText[j - 1]
+            #following
+            if j < (len(splittedText)-1):
+                followingSentence = splittedText[j + 1]
+            #the index of the text is the same of the link
+            sentenceLink = links[i]
+            #add object to dictionary
+            sentenceObject = sentenceContext(st,sentenceLink,prevContext=previousSentence,folContext=followingSentence)
+            contextDict[stId] = sentenceObject
+            stId+=1
+
+    print("****************************")   
+    print("CONTEXT DICT")
+    for key, value in contextDict.items():
+        print("Id: ",key)
+        print("Value: ")
+        print(value.__str__())
+        print("------------------")
+    
     if mode == 'presence':
         result = sentencePresence(sentences)
         return result 
     else:
         result,intenseSentences = sentenceIntensityNLI(sentences,threshold=threshold)
-        intenseSentencesContext = getSentenceContext(intenseSentences,texts,links)
+        intenseSentencesContext = getSentenceContext(intenseSentences,sentences,contextDict)
         print("****************************")
         print("RESULTS")
         for i in range(len(intenseSentencesContext)):
+            print("----------------------------------")
             print("Question:",bdiTitles[i])
             print("Score:",result[i])
-            print("Intense sentence:",intenseSentencesContext[i])
-        return result, intenseSentencesContext  
+            print("Intense sentence with 1 point:\n",intenseSentencesContext[i][0])
+            print("Intense sentence with 2 points:\n",intenseSentencesContext[i][1])
+            print("Intense sentence with 3 points:\n",intenseSentencesContext[i][2])
+        
+        
+        return result, intenseSentencesContext
 
-#given the most intense sentences of each dimension it returns for every sentence
-#an object containing the sentence, the link to the post and context
-def getSentenceContext(intenseSentences,texts,links):
-    result = []
-    for question in intenseSentences:
-        questionSentences = []
-        for sentence in question:
+#given a list of texts it creates a dictionary where the key is the index of the sentence
+#the value is the context of that sentence
+def getDictOfContext(texts,links):  
+    contextDict = {}
+    stId = 0
+    for i,t in enumerate(texts):
+        splittedText = nltk.sent_tokenize(t)
+        for j,st in enumerate(splittedText):
             previousSentence = None
             followingSentence = None
-            for text in texts:
-                if sentence in text:
-                    #get the text where the sentence is written
-                    #split text by . get the index of the sentence
-                    splittedText = nltk.sent_tokenize(text)
-                    currentIndex = splittedText.index(sentence)
-                    #previous
-                    if currentIndex > 0:
-                        previousSentence =  splittedText[currentIndex - 1]
-                    #following
-                    if currentIndex < (len(splittedText)-1):
-                        followingSentence = splittedText[currentIndex + 1]
-
-                    #the index of the text is the same of the link
-                    linkIndex = texts.index(text)
-                    sentenceLink = links[linkIndex]
+            #previous
+            if currentIndex > 0:
+                previousSentence =  st[j - 1]
+            #following
+            if currentIndex < (len(st)-1):
+                followingSentence = st[j + 1]
+            #the index of the text is the same of the link
+            sentenceLink = links[i]
+            #add object to dictionary
             sentenceObject = sentenceContext(sentence,sentenceLink,prevContext=previousSentence,folContext=followingSentence)
-            questionSentences.append(sentenceObject.to_dict())
+            contextDict[stId] = sentenceObject
+            stId+=1
+    return contextDict
+
+#given the most intense sentences of each dimension it returns for every sentence
+#the context stored in the contextDictionary
+def getSentenceContext(intenseSentences,sentences,contextDict):
+    result = []
+    for question in intenseSentences:
+        #list that contains a list from 1 to 3 points
+        questionSentences = [ [], [], [] ]
+        #loop used to get into the 3 lists of each question
+        for i in range(3):
+            for st in question[i]:
+                #we get the index of the sentence and get the context from the dict
+                index = sentences.index(st)
+                questionSentences[i].append(contextDict[index].to_dict())
         result.append(questionSentences)
     return result
 
@@ -411,8 +460,6 @@ def getSentencesPoints(scores,points,maxPoints,questionIndex):
     print("Question points: ",sentencesPoints)
     return 
 
-
-
 #############################################################################################################  
 # INTENSITY USING NATURAL LANGUAGE INFERENCE
 ############################################################################################################# 
@@ -443,19 +490,16 @@ def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
                 sentenceValuesForQuestion.append(value)
                 
                 if printFlag:
-                    print("{} \t {} \t Score: {} \t Value: {:.3f} \t Label: {}".format(sentence, option, score, value, label))
-                    
+                    print("{} \t {} \t Score: {} \t Value: {:.3f} \t Label: {}".format(sentence, option, score, value, label))      
 
             questionResults.append(sentenceValuesForQuestion)
 
-        print("Results for question: \n",questionResults)
-        #get points corresponding to that question
-        maxSimilarityIndex,maxSimilarity = maxIndexOfScoresNLI(questionResults)
-        maxPoints = int(points[questionIndex][maxSimilarityIndex])
-        result.append(maxPoints)
-        #get the most intense sentences for the question and append it
-        mostIntenseSentences.append(intenseSentencesOfQuestion(questionResults,sentences,points,maxPoints,questionIndex))
+        print("Results for question: \n",questionResults)        
+        #get the most intense sentences for the question and append it and the maxPoints
+        questionIntenseSentences,maxPoints = intenseSentencesOfQuestion(questionResults,sentences,points,questionIndex)
+        mostIntenseSentences.append(questionIntenseSentences)
         totalResults.append(questionResults)
+        result.append(maxPoints)
         print("Intensity for question:",maxPoints)
         questionIndex += 1
     #print("Total results:", totalResults)
@@ -479,18 +523,28 @@ def maxIndexOfScoresNLI(scores):
     return maxSimilarityIndex,maxSimilarity 
 
 #given the scores of a list of sentences returns the sentences wich have
-#the max intensity ¿[with the link and context of the sentence]?
-def intenseSentencesOfQuestion(scores,sentences,points,maxPoints,questionIndex):
-    mostIntenseSentences = []
-    #if there is no points above 0 we return []
-    if maxPoints == 0:
-        return mostIntenseSentences
+#the max intensity for a question (including sentences with 1 to 3 points) 
+def intenseSentencesOfQuestion(scores,sentences,points,questionIndex):
+    #list that contains a list from 1 to 3 points
+    mostIntenseSentences = [ [],[],[] ]
     #get points for every sentence
     sentencesPoints = getSentencesPointsNLI(scores,points,questionIndex)
+    maxPoints = max(sentencesPoints)
+    #if there is no points above 0 we return empty
+    if maxPoints == 0:
+        return mostIntenseSentences,maxPoints
+    
     for i in range(len(sentencesPoints)):
-        if sentencesPoints[i] == maxPoints:
-            mostIntenseSentences.append(sentences[i])
-    return mostIntenseSentences
+        #1 point
+        if sentencesPoints[i] == 1:
+            mostIntenseSentences[0].append(sentences[i])
+        #2 points
+        elif sentencesPoints[i] == 2:
+            mostIntenseSentences[1].append(sentences[i])
+        #3 points
+        elif sentencesPoints[i] == 3:
+            mostIntenseSentences[2].append(sentences[i])
+    return mostIntenseSentences,maxPoints
 
 #given the scores of a list of sentences and a question
 #returns the points for everySentence
@@ -550,6 +604,22 @@ def comparacionIntensidades(sentences):
     print("Tiempo NLI: ", time_1)
     print("Tiempo normal: ", time_2)
     print("*************************************************************************************")
+
+def capturaEmbeddings():
+    l1 = ["I am very happy today","I don'feel fine today"]
+    l2 = ["I love my life","i feel very tired"]
+    l1Embeddings = model.encode(l1, convert_to_tensor=True)
+    l2Embeddings = model.encode(l2, convert_to_tensor=True)
+    cosineScores = util.cos_sim(l1Embeddings, l2Embeddings)
+    for i,scores in enumerate(cosineScores):
+        for j,score in enumerate(scores):
+            print("----------------------------------------")
+            print("Oración 1: ",l1[i])
+            #print("Embeddings oracion 1: ",l1Embeddings[i])
+            print("Oración 2: ",l2[j])
+            #print("Embeddings oracion 2: ",l2Embeddings[j])
+            print("Similitud coseno: ",cosineScores[i][j])
+            
 ################################################################################################
 
 #createEmbeddings(intensityFile,mode='intensity')
@@ -570,7 +640,7 @@ suicidalThoughtsOptions = ["I don't have any thoughts of killing myself.",
 #sentencePresence(sad,printFlag=False)
 #sentenceIntensity(sad,printFlag=True,threshold=0.35)
 #processJson("rd_depression_2022_11_24_17_10_12_965065_output.json")
-#analyzer("demo_analyzer_short.json",mode='intensity')
+analyzer("demo_analyzer_short_v3.json",mode='intensity')
 #analyzer("tw_2022_10_3_19_5_54_567_output_1.json",source='twitter',mode='intensity')
 #findMaxIndex()
 
@@ -602,6 +672,7 @@ scoreVeryHappyQ1 = torch.tensor([[0.0, 0.0, 0.3541, 0.3585],
 #timeAnalyzer("rd_2022_11_0_17_54_31_107_output.json",mode='intensity')
 #writeEmbeddings()
 #readEmbeddings()
+#capturaEmbeddings()
 
 
 
