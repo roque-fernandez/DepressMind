@@ -95,9 +95,6 @@ def analysis():
             
             if fileResults:
                 resultsDict = json.loads(fileResults['results'])
-                # print("Stored results: ", fileResults['results'])
-                # print("Results dict:", resultsDict)
-                # print("Analysis: ",resultsDict['analysis'])
                 return jsonify(resultsDict['analysis'],resultsDict['dailyAnalysis'],resultsDict['weeklyAnalysis'],resultsDict['monthlyAnalysis'])
             #if we didnt analysed this file yet we analyse it
             else:
@@ -116,9 +113,6 @@ def analysis():
             
             if fileResults:
                 resultsDict = json.loads(fileResults['results'])
-                # print("Stored results: ", fileResults['results'])
-                # print("Results dict:", resultsDict)
-                # print("Analysis: ",resultsDict['analysis'])
                 return jsonify(resultsDict['analysis'],resultsDict['dailyAnalysis'],resultsDict['weeklyAnalysis'],resultsDict['monthlyAnalysis'],resultsDict['intenseSentences'])
             #if we didnt analysed this file yet we analyse it
             else:

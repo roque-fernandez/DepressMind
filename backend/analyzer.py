@@ -177,7 +177,6 @@ def groupByDay(objects,source):
 
 def analyzer(file,source='reddit',mode='presence'):
     texts,links = getTextFromJson(file,source=source)
-    sentencesLinks = []
     sentences = []
     #dictionary where the key is the index of the sentence the value is the context of that sentence
     contextDict = {}
@@ -640,7 +639,7 @@ suicidalThoughtsOptions = ["I don't have any thoughts of killing myself.",
 #sentencePresence(sad,printFlag=False)
 #sentenceIntensity(sad,printFlag=True,threshold=0.35)
 #processJson("rd_depression_2022_11_24_17_10_12_965065_output.json")
-analyzer("demo_analyzer_short_v3.json",mode='intensity')
+#analyzer("demo_analyzer_short_v3.json",mode='intensity')
 #analyzer("tw_2022_10_3_19_5_54_567_output_1.json",source='twitter',mode='intensity')
 #findMaxIndex()
 
@@ -673,6 +672,8 @@ scoreVeryHappyQ1 = torch.tensor([[0.0, 0.0, 0.3541, 0.3585],
 #writeEmbeddings()
 #readEmbeddings()
 #capturaEmbeddings()
+
+
 
 
 
