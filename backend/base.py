@@ -110,6 +110,7 @@ def analysis():
         else:
             #if we already analysed a file of a user we return the stored results
             fileResults = stored_results.find_one({'username': username, 'filename': f.filename, 'mode':mode})
+            print("Stored results intensity")
             
             if fileResults:
                 resultsDict = json.loads(fileResults['results'])

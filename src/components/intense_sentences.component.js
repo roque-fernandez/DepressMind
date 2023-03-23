@@ -50,10 +50,10 @@ export default class IntenseSentences extends Component {
             <h1>BDI evidence</h1>
 
             <div>
-              <h3>Graphic legend:</h3>
-              <h4 style={{color: "rgba(255, 195, 0, 1)"}}>● Low</h4>
-              <h4 style={{color: "rgba(255, 123, 0, 1)"}}>● Medium</h4>
-              <h4 style={{color: "red"}}>● High</h4>
+              <h3>Intensity levels:</h3>
+              <h4 style={{color: "rgba(255, 195, 0, 1)", display: "inline-block", padding: "0em 1em"}}>Low</h4>
+              <h4 style={{color: "rgba(255, 123, 0, 1)", display: "inline-block", padding: "0em 1em"}}>Medium</h4>
+              <h4 style={{color: "red", display: "inline-block", padding: "0em 1em"}}>High</h4>
             </div>
 
             <div>
