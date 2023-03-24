@@ -274,6 +274,14 @@ export default class AnalysisResult extends Component {
   }
 
   render() {
+    const colors = [
+      "rgba(255, 195, 0, 1)", // color for y-value = 1
+      "rgba(255, 123, 0, 1)", // color for y-value = 2
+      "red" // color for y-value = 3
+    ];
+
+    const BDITitles = ['Sadness','Pessimism','Past Failure','Loss of Pleasure','Guilty Feelings','Punishment Feelings','Self-Dislike','Self-Criticalness','Suicidal Thoughts or Wishes','Crying','Agitation','Loss of Interest','Indecisiveness','Worthlessness','Loss of Energy','Changes in Sleeping Pattern','Irritability','Changes in Appetite','Concentration Difficulty','Tiredness or Fatigue','Loss of Interest in Sex'];
+
     if(this.context.loggedIn ){
       if(this.state.flagIntenseSentences){
         return(
@@ -299,18 +307,30 @@ export default class AnalysisResult extends Component {
                   <Plot
                     data={[
                       {
-                        x: ['Sadness','Pessimism','Past Failure','Loss of Pleasure','Guilty Feelings','Punishment Feelings','Self-Dislike','Self-Criticalness','Suicidal Thoughts or Wishes','Crying','Agitation','Loss of Interest','Indecisiveness','Worthlessness','Loss of Energy','Changes in Sleeping Pattern','Irritability','Changes in Appetite','Concentration Difficulty','Tiredness or Fatigue','Loss of Interest in Sex'],
+                        x: BDITitles,
                         y: this.state.generalStatistics,
                         type: 'bar',
+                        marker: {
+                          color: this.state.generalStatistics.map((val) => colors[val-1]) // Map values to corresponding colors
+                        }
                         
                       }
                     ]}
-                    layout={ {width: 550, height: 440, title: this.state.mode} }
+                    layout={ {
+                      width: 550, 
+                      height: 440, 
+                      title: this.state.mode,
+                      yaxis: {
+                        tickmode: 'linear',
+                        dtick: 1,
+                        // Add any other y-axis formatting options here
+                      }
+                    }}
                   />
 
                   <div className="d-grid centered-button">
                     <button onClick={this.showIntenseSentences} className="btn btn-primary">
-                      Most intense sentences
+                      Show evidence
                     </button>
                   </div>
 
@@ -367,18 +387,24 @@ export default class AnalysisResult extends Component {
               <Plot
                 data={[
                   {
-                    x: ['Sadness','Pessimism','Past Failure','Loss of Pleasure','Guilty Feelings','Punishment Feelings','Self-Dislike','Self-Criticalness','Suicidal Thoughts or Wishes','Crying','Agitation','Loss of Interest','Indecisiveness','Worthlessness','Loss of Energy','Changes in Sleeping Pattern','Irritability','Changes in Appetite','Concentration Difficulty','Tiredness or Fatigue','Loss of Interest in Sex'],
-                    //y: [2,6,3,5,5,7,2,6,3,5,5,7,2,6,3,5,5,7,4,5,6],
+                    x: BDITitles,
                     y: Object.values(this.state.weeklyStatistics)[this.weekIndex],
                     type: 'bar',
-                    
+                    marker: {
+                      color: Object.values(this.state.weeklyStatistics)[this.weekIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                    }
                   }
                 ]}
                 layout={ 
                   {
                     width: 550, 
                     height: 440, 
-                    title: "(Year,week)\n" + Object.keys(this.state.weeklyStatistics)[this.weekIndex]
+                    title: "(Year,week)\n" + Object.keys(this.state.weeklyStatistics)[this.weekIndex],
+                    yaxis: {
+                      tickmode: 'linear',
+                      dtick: 1,
+                      // Add any other y-axis formatting options here
+                    }
                   } 
                 }
               />
@@ -405,18 +431,24 @@ export default class AnalysisResult extends Component {
               <Plot
                 data={[
                   {
-                    x: ['Sadness','Pessimism','Past Failure','Loss of Pleasure','Guilty Feelings','Punishment Feelings','Self-Dislike','Self-Criticalness','Suicidal Thoughts or Wishes','Crying','Agitation','Loss of Interest','Indecisiveness','Worthlessness','Loss of Energy','Changes in Sleeping Pattern','Irritability','Changes in Appetite','Concentration Difficulty','Tiredness or Fatigue','Loss of Interest in Sex'],
-                    //y: [2,6,3,5,5,7,2,6,3,5,5,7,2,6,3,5,5,7,4,5,6],
+                    x: BDITitles,
                     y: Object.values(this.state.monthlyStatistics)[this.monthIndex],
                     type: 'bar',
-                    
+                    marker: {
+                      color: Object.values(this.state.monthlyStatistics)[this.monthIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                    }
                   }
                 ]}
                 layout={ 
                   {
                     width: 550, 
                     height: 440, 
-                    title: "(Year,month)\n" + Object.keys(this.state.monthlyStatistics)[this.monthIndex]
+                    title: "(Year,month)\n" + Object.keys(this.state.monthlyStatistics)[this.monthIndex],
+                    yaxis: {
+                      tickmode: 'linear',
+                      dtick: 1,
+                      // Add any other y-axis formatting options here
+                    }
                   } 
                 }
               />
@@ -442,18 +474,24 @@ export default class AnalysisResult extends Component {
               <Plot
                 data={[
                   {
-                    x: ['Sadness','Pessimism','Past Failure','Loss of Pleasure','Guilty Feelings','Punishment Feelings','Self-Dislike','Self-Criticalness','Suicidal Thoughts or Wishes','Crying','Agitation','Loss of Interest','Indecisiveness','Worthlessness','Loss of Energy','Changes in Sleeping Pattern','Irritability','Changes in Appetite','Concentration Difficulty','Tiredness or Fatigue','Loss of Interest in Sex'],
-                    //y: [2,6,3,5,5,7,2,6,3,5,5,7,2,6,3,5,5,7,4,5,6],
+                    x: BDITitles,
                     y: Object.values(this.state.dailyStatistics)[this.dayIndex],
                     type: 'bar',
-                    
+                    marker: {
+                      color: Object.values(this.state.dailyStatistics)[this.dayIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                    }
                   }
                 ]}
                 layout={ 
                   {
                     width: 550, 
                     height: 440, 
-                    title: "(Year,month,day)\n" + Object.keys(this.state.dailyStatistics)[this.dayIndex]
+                    title: "(Year,month,day)\n" + Object.keys(this.state.dailyStatistics)[this.dayIndex],
+                    yaxis: {
+                      tickmode: 'linear',
+                      dtick: 1,
+                      // Add any other y-axis formatting options here
+                    }
                   } 
                 }
               />

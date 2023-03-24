@@ -22,7 +22,7 @@ export default class Analysis extends Component {
 
     this.state = {
       source: 'reddit',
-      mode: 'presence',
+      mode: 'intensity',
       resultFlag: false,
       loading: false,
       error: false,
@@ -120,8 +120,9 @@ export default class Analysis extends Component {
                       <div className="mb-3">
                         <label htmlFor="modeInput">Mode</label>
                         <select onChange={this.handleChange} name="mode" id="modeInput" className="form-select" aria-label="Default select example">
-                            <option defaultValue="presence">Presence</option>
-                            <option value="intensity">Intensity</option>
+                            <option defaultValue="intensity">Intensity</option>
+                            <option value="presence">Presence</option>
+                            
                         </select>
                       </div>
       

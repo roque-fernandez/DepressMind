@@ -1,6 +1,7 @@
 import React from "react";
 import DataTable, { createTheme } from "react-data-table-component";
 import ExpandedRow from "./expanded_row.component";
+import punishment from "../iconos/punishment.png";
 
 createTheme("customTheme", {
   text: {
@@ -41,9 +42,10 @@ export default class SentenceTable extends React.Component {
 
         this.columns = [
         {
-            name: <span style={{ fontSize: "x-large" }}>{this.props.title}</span>,
+            name: <span style={{ fontSize: "x-large" }}><img src={punishment} width="50em" height="50em"/>{this.props.title}</span>,
             selector: (row) => row.sentence,
             sortable: true,
+            icon: <img src={punishment} alt="icon" />,
             cell: (row) => {
                 let color;
                 switch (row.points) {
@@ -126,6 +128,7 @@ export default class SentenceTable extends React.Component {
                     >
                     Show More
                 </button>
+                
             </div>
             
           </>
