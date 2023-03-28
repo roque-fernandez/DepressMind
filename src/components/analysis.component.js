@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import LoggedNavBar from './logged_navbar.component'
 import { loginContext } from "../context/LoginContext"
 import axios from "axios";
-import Plot from 'react-plotly.js';
 import AnalysisResult from './analysis_result.component'
 import BarLoader from "react-spinners/BarLoader";
 

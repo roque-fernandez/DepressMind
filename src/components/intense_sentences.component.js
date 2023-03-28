@@ -8,6 +8,7 @@ export default class IntenseSentences extends Component {
   constructor(props){
     super(props)
     this.handleChange = this.handleChange.bind(this);
+    this.handleGoBack = this.handleGoBack.bind(this);
 
     console.log("Sentences:\n",this.props.sentences);
     console.log("Analysis:\n",this.props.analysis);
@@ -27,6 +28,7 @@ export default class IntenseSentences extends Component {
   }
 
   splitIndexes(array){
+    // eslint-disable-next-line
     array.reduce((acc, cur, index) => {
         if (cur === 0) {
             this.zeroIndexes.push(index);
@@ -41,6 +43,10 @@ export default class IntenseSentences extends Component {
     this.setState({ [e.target.name]: e.target.value})
   }
 
+  handleGoBack() {
+    this.props.goBack(); // call the goBack function passed as a prop
+  }
+
 
   render() {
     if(this.context.loggedIn ){
@@ -48,6 +54,8 @@ export default class IntenseSentences extends Component {
         <div className="web-container">
             <LoggedNavBar/>
             <h1>BDI evidence</h1>
+
+            <button onClick={this.handleGoBack} className="btn btn-outline-primary" style={{margin: "1em 0em"}}>Go Back</button>            
 
             <div>
               <h3>Intensity levels:</h3>
@@ -59,7 +67,14 @@ export default class IntenseSentences extends Component {
             <div>
               {this.nonZeroIndexes.map((i) => (
                   <>
-                    <SentenceTable key={i} title={this.BDITitles[i]} data={this.props.sentences[i]} points={this.props.analysis[i]}/>
+                    <SentenceTable 
+                      key={i}
+                      title={this.BDITitles[i]} 
+                      data={this.props.sentences[i]} 
+                      points={this.props.analysis[i]} 
+                      index={i}
+                      style={{padding: "1em 0em"}}
+                    />
                   </>
               ))}
                 

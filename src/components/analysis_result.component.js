@@ -21,6 +21,7 @@ export default class AnalysisResult extends Component {
     this.dateFormat = this.dateFormat.bind(this);
     this.formatDailyStatisticsKeys = this.formatDailyStatisticsKeys.bind(this);
     this.showIntenseSentences = this.showIntenseSentences.bind(this);
+    this.goBack = this.goBack.bind(this);
 
     //index for the time analysis
     this.monthMaxIndex = Object.keys(this.props.statistics[3]).length - 1;
@@ -114,10 +115,10 @@ export default class AnalysisResult extends Component {
     console.log("keys: ",keys)
     console.log("MaxIndex: ",maxIndex)
 
-    for(var i=0;i < maxIndex;i++){
+    for(let i=0;i < maxIndex;i++){
       console.log("Index: ",i)
       //contains the evolution of one dimension
-      var evolutions = []
+      let evolutions = []
       keys.forEach( k =>{
         evolutions.push(statistics[k][i])
       })
@@ -273,6 +274,10 @@ export default class AnalysisResult extends Component {
     this.setState({ flagIntenseSentences: true })
   }
 
+  goBack() {
+    this.setState({flagIntenseSentences: false});
+  }
+
   render() {
     const colors = [
       "rgba(255, 195, 0, 1)", // color for y-value = 1
@@ -285,7 +290,11 @@ export default class AnalysisResult extends Component {
     if(this.context.loggedIn ){
       if(this.state.flagIntenseSentences){
         return(
-          <IntenseSentences sentences = {this.intenseSentences} analysis = {this.state.generalStatistics} />
+          <IntenseSentences 
+            sentences = {this.intenseSentences} 
+            analysis = {this.state.generalStatistics}
+            goBack={this.goBack} 
+          />
         )
       }
       return (

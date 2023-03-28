@@ -1,7 +1,30 @@
 import React from "react";
 import DataTable, { createTheme } from "react-data-table-component";
 import ExpandedRow from "./expanded_row.component";
-import punishment from "../iconos/punishment.png";
+//ICONS
+import sadness from "../iconos/sadness.png";
+import pessimism from "../iconos/pessimism.png";
+import pastFailure from "../iconos/past_failure.png";
+import lossPleasure from "../iconos/loss_pleasure.png";
+import guiltyFeelings from "../iconos/guilty_feelings.png";
+import punishment from "../iconos/punishment_feelings.png";
+import selfDislike from "../iconos/self_dislike.png";
+import selfCriticalness from "../iconos/self_criticalness.png";
+import suicidalThoughts from "../iconos/suicidal_thoughts.png";
+import crying from "../iconos/crying.png";
+import agitation from "../iconos/agitation.png";
+import lossInterest from "../iconos/loss_interest.png";
+import indecisiveness from "../iconos/indecisiveness.png";
+import worthlessness from "../iconos/worthlessness.png";
+import lossEnergy from "../iconos/loss_energy.png";
+import sleepingPattern from "../iconos/sleeping_pattern.png";
+import irritability from "../iconos/irritability.png";
+import appetite from "../iconos/appetite.png";
+import concentrationDifficulty from "../iconos/concentration_difficulty.png";
+import fatigue from "../iconos/fatigue.png";
+import interestSex from "../iconos/interest_sex.png";
+
+
 
 createTheme("customTheme", {
   text: {
@@ -40,9 +63,11 @@ export default class SentenceTable extends React.Component {
             numRowsToShow: 10, // Set the initial number of rows to show
         };
 
+        this.icons = [sadness,pessimism,pastFailure,lossPleasure,guiltyFeelings,punishment,selfDislike,selfCriticalness,suicidalThoughts,crying,agitation,lossInterest,indecisiveness,worthlessness,lossEnergy,sleepingPattern,irritability,appetite,concentrationDifficulty,fatigue,interestSex];
+
         this.columns = [
         {
-            name: <span style={{ fontSize: "x-large" }}><img src={punishment} width="50em" height="50em"/>{this.props.title}</span>,
+            name: <span><img src={this.icons[this.props.index]} alt="icon" width="50em" height="50em"/><span style={{ fontSize: "x-large", paddingLeft: "10 em" }}>{this.props.title}</span></span>,
             selector: (row) => row.sentence,
             sortable: true,
             icon: <img src={punishment} alt="icon" />,
@@ -70,6 +95,8 @@ export default class SentenceTable extends React.Component {
             },
         },
         ];
+
+        
     }
 
     handleRowClick = (row) => {
