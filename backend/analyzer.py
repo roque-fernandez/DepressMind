@@ -52,28 +52,34 @@ def timeAnalyzer(file,source='reddit',mode='presence'):
     monthlyAnalysis = {}
     weeklyAnalysis = {}
     dailyAnalysis = {}
+    #create embeddings
+    if mode == 'presence':
+        presenceEmbeddings,questions = createEmbeddings(presenceFile)
+    else:
+        intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
+
     print("\n********************************")
     print("TEMPORAL ANALYSIS")
     #get results for each time period
     for key in months:
         if mode == 'presence':
-            results = sentencePresence(months[key])
+            results = sentencePresence(months[key],presenceEmbeddings,questions)
         else:
-            results = sentenceIntensity(months[key],threshold=threshold)
+            results = sentenceIntensity(months[key],intensityEmbeddings,points,questions,threshold=threshold)
         monthlyAnalysis[str(key)] = results
 
     for key in weeks:
         if mode == 'presence':
-            results = sentencePresence(weeks[key])
+            results = sentencePresence(weeks[key],presenceEmbeddings,questions)
         else:
-            results = sentenceIntensity(weeks[key],threshold=threshold)
+            results = sentenceIntensity(weeks[key],intensityEmbeddings,points,questions,threshold=threshold)
         weeklyAnalysis[str(key)] = results
 
     for key in days:
         if mode == 'presence':
-            results = sentencePresence(days[key])
+            results = sentencePresence(days[key],presenceEmbeddings,questions)
         else:
-            results = sentenceIntensity(days[key],threshold=threshold)
+            results = sentenceIntensity(days[key],intensityEmbeddings,points,questions,threshold=threshold)
         dailyAnalysis[str(key)] = results
 
     # print("Monthly analysis")
@@ -212,10 +218,12 @@ def analyzer(file,source='reddit',mode='presence'):
         print("------------------")
     
     if mode == 'presence':
-        result = sentencePresence(sentences)
+        presenceEmbeddings,questions = createEmbeddings(presenceFile)
+        result = sentencePresence(sentences,presenceEmbeddings,questions)
         return result 
     else:
-        result,intenseSentences = sentenceIntensityNLI(sentences,threshold=threshold)
+        intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
+        result,intenseSentences = sentenceIntensityNLI(sentences,points,questions)
         intenseSentencesContext = getSentenceContext(intenseSentences,sentences,contextDict)
         print("****************************")
         print("RESULTS")
@@ -341,16 +349,11 @@ def printResult(res):
 # PRESENCE
 #############################################################################################################        
 
-def sentencePresence(sentences,printFlag=False):
-    prevalenceEmbeddings,questions = createEmbeddings(presenceFile)
-    # print("Questions")
-    # print(questions)
-    # print("PrevalenceEmbeddings")
-    # print(prevalenceEmbeddings)
+def sentencePresence(sentences,presenceEmbeddings,questions,printFlag=False):
     sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
     result = []
     questionIndex = 0
-    for questionEmbeddings in prevalenceEmbeddings:
+    for questionEmbeddings in presenceEmbeddings:
         #Compute cosine-similarities
         cosineScores = util.cos_sim(sentencesEmbedding, questionEmbeddings)
         #get the max similarity of every sentence within a question
@@ -382,8 +385,7 @@ def sentencePresence(sentences,printFlag=False):
 # INTENSITY
 ############################################################################################################# 
 
-def sentenceIntensity(sentences,printFlag=False,threshold=0.2):
-    intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
+def sentenceIntensity(sentences,intensityEmbeddings,points,questions,printFlag=False,threshold=0.2):
     sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
     result = []
     questionIndex = 0
@@ -463,10 +465,7 @@ def getSentencesPoints(scores,points,maxPoints,questionIndex):
 # INTENSITY USING NATURAL LANGUAGE INFERENCE
 ############################################################################################################# 
 
-def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
-    intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
-    #sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
-    totalResults = []
+def sentenceIntensityNLI(sentences,points,questions,printFlag=False):
     result = []
     questionIndex = 0
     mostIntenseSentences = []
@@ -497,7 +496,6 @@ def sentenceIntensityNLI(sentences,printFlag=False,threshold=0.2):
         #get the most intense sentences for the question and append it and the maxPoints
         questionIntenseSentences,maxPoints = intenseSentencesOfQuestion(questionResults,sentences,points,questionIndex)
         mostIntenseSentences.append(questionIntenseSentences)
-        totalResults.append(questionResults)
         result.append(maxPoints)
         print("Intensity for question:",maxPoints)
         questionIndex += 1
