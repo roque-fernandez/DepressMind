@@ -73,7 +73,7 @@ export default class IntenseSentences extends Component {
                       data={this.props.sentences[i]} 
                       points={this.props.analysis[i]} 
                       index={i}
-                      style={{padding: "1em 0em"}}
+                      style={{marginBottom: '2em'}}
                     />
                   </>
               ))}

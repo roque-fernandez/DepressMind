@@ -67,7 +67,7 @@ export default class SentenceTable extends React.Component {
 
         this.columns = [
         {
-            name: <span><img src={this.icons[this.props.index]} alt="icon" width="50em" height="50em"/><span style={{ fontSize: "x-large", paddingLeft: "10 em" }}>{this.props.title}</span></span>,
+            name: <span><img src={this.icons[this.props.index]} alt="icon" width="43em" height="43em" style={{marginRight: '1em'}} /><span style={{ fontSize: "x-large", paddingLeft: "10 em" }}>{this.props.title}</span></span>,
             selector: (row) => row.sentence,
             sortable: true,
             icon: <img src={punishment} alt="icon" />,
@@ -140,7 +140,7 @@ export default class SentenceTable extends React.Component {
               onRowClicked={this.handleRowClick}
               theme="customTheme"
             />
-            <div className="d-flex justify-content-between" style={{marginTop: '1em'}}>
+            <div className="d-flex justify-content-between" style={{marginTop: '1em', marginBottom: '2em'}}>
                 <button
                     onClick={this.handleShowLessClick}
                     className="btn btn-light text-center"
