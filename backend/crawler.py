@@ -82,8 +82,8 @@ def getPostInfo(soup):
 def writePostToJson(post, outfile):
     jsonPost = json.dumps(post.__dict__, indent=1)
     outfile.write(jsonPost)
-    print("----------------------------------")
-    print(jsonPost)
+    # print("----------------------------------")
+    # print(jsonPost)
 
 def getCommentInfo(soup,link=None):
     usernameRegex = re.compile('.*author.*')
@@ -247,7 +247,7 @@ def redditGeneralistCrawler(limit=1000, limitPerSubreddit=50, votes=0, since=Non
     page = requests.get(url, headers=headers)
     soup = BeautifulSoup(page.text, 'html.parser')
     count = 0
-    outputName = "rd_generalist_" + datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
+    outputName = "rd_generalist_" + datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
     if limit < limitPerSubreddit:
         limitPerSubreddit = limit
 
@@ -289,11 +289,11 @@ def getUserPostInfo(soup):
 
 def redditUserCrawler(username, limit=1000, votes=0, since=None, until=None):
     url = 'https://old.reddit.com/user/' + username
-    outputName = "rd_user_" + username + "_" + datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
+    outputName = "rd_user_" + username + "_" + datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
     if since is None:
-        since = "1970-01-01"
+            since = "1970-01-01"
     if until is None:
-        until = datetime.today().strftime('%Y-%m-%d')
+        until = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
     # printing information
     redditHeader(username, limit, votes, since, until, outputName)
@@ -320,7 +320,7 @@ def redditUserCrawler(username, limit=1000, votes=0, since=None, until=None):
                     try:
                         post = getUserPostInfo(postSoup)
 
-                        print("Post:", post.text , "||",post.username,"||",post.date)
+                        #print("Post:", post.text , "||",post.username,"||",post.date)
                         
                         #check votes and dates
                         if int(post.votes) < votes:
@@ -341,16 +341,15 @@ def redditUserCrawler(username, limit=1000, votes=0, since=None, until=None):
                     except Exception as e:
                         print("Error ocurred getting userPost info: ", e)
 
-        # move to the next page of the subreddit
-        if soup.find("a", rel="nofollow next") is not None:
-            newUrl = soup.find("a", rel="nofollow next").get("href")
-            print("New url: ", newUrl)
-            page = requests.get(newUrl, headers=headers)
-            soup = BeautifulSoup(page.text, 'html.parser')
-            print("New page")
-        else:
-            print("Last page")
-            return count,outputName
+            # move to the next page of the subreddit
+            if soup.find("a", rel="nofollow next") is not None:
+                newUrl = soup.find("a", rel="nofollow next").get("href")
+                print("New url: ", newUrl)
+                page = requests.get(newUrl, headers=headers)
+                soup = BeautifulSoup(page.text, 'html.parser')
+            else:
+                print("Last page")
+                return count,outputName
 
 def getQueryPostInfo(soup):
     usernameRegex = re.compile('.*author.*')
@@ -368,11 +367,11 @@ def getQueryPostInfo(soup):
 
 def redditQueryCrawler(query, limit=1000, votes=0, since=None, until=None):
     url = 'https://old.reddit.com/search?q=' + query
-    outputName = "rd_query_" + query + "_" + datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
+    outputName = "rd_query_" + query + "_" + datetime.datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f') + "_output.json"
     if since is None:
-        since = "1970-01-01"
+            since = "1970-01-01"
     if until is None:
-        until = datetime.today().strftime('%Y-%m-%d')
+        until = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
     # printing information
     redditHeader(query, limit, votes, since, until, outputName)
@@ -410,16 +409,16 @@ def redditQueryCrawler(query, limit=1000, votes=0, since=None, until=None):
                 except Exception as e:
                     print("Error ocurred getting userPost info: ", e)
 
-        # move to the next page of the subreddit
-        if soup.find("a", rel="nofollow next") is not None:
-            newUrl = soup.find("a", rel="nofollow next").get("href")
-            print("New url: ", newUrl)
-            page = requests.get(newUrl, headers=headers)
-            soup = BeautifulSoup(page.text, 'html.parser')
-            print("New page")
-        else:
-            print("Last page")
-            return count,outputName
+            # move to the next page of the subreddit
+            if soup.find("a", rel="nofollow next") is not None:
+                newUrl = soup.find("a", rel="nofollow next").get("href")
+                print("New url: ", newUrl)
+                page = requests.get(newUrl, headers=headers)
+                soup = BeautifulSoup(page.text, 'html.parser')
+                print("New page")
+            else:
+                print("Last page")
+                return count,outputName
 
 ########################################################################################################################
 

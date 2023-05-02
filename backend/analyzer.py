@@ -82,13 +82,6 @@ def timeAnalyzer(file,source='reddit',mode='presence'):
             results = sentenceIntensity(days[key],intensityEmbeddings,points,questions,threshold=threshold)
         dailyAnalysis[str(key)] = results
 
-    # print("Monthly analysis")
-    # print(monthlyAnalysis)
-    # print("Weekly analysis")
-    # print(weeklyAnalysis)
-    # print("Daily analysis")
-    # print(dailyAnalysis)
-
     return monthlyAnalysis,weeklyAnalysis,dailyAnalysis
 
 def jsonToObjectArray(file):
@@ -499,11 +492,63 @@ def sentenceIntensityNLI(sentences,points,questions,printFlag=False):
         result.append(maxPoints)
         print("Intensity for question:",maxPoints)
         questionIndex += 1
-    #print("Total results:", totalResults)
     print("Result: \n",result)
     print("Intense sentences: \n",mostIntenseSentences)
 
     return result,mostIntenseSentences
+
+def sentenceIntensityNLI_V12(sentences,points,questions,presenceEmbeddings,printFlag=False,threshold=0.35):
+    sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
+    result = []
+    questionIndex = 0
+    for questionEmbeddings in presenceEmbeddings:
+        nAboveThreshold = 0
+        nEntailments = 0
+        #print("************************************")
+        #print('Question:',bdiTitles[questionIndex])
+        #Compute cosine-similarities
+        cosineScores = util.cos_sim(sentencesEmbedding, questionEmbeddings)
+        #get the max similarity of every sentence within a question
+        maxPresence = [torch.max(l).item() for l in cosineScores]
+        #filter sentences with a presence below the filter
+        filteredSentences = []
+        #print("FILTERED SENTENCES")
+        for i,p in enumerate(maxPresence):
+            if p > threshold:
+                nAboveThreshold += 1
+                filteredSentences.append(sentences[i]) 
+                if printFlag:
+                    print(sentences[i], " [ ", p , " ] ")
+        #apply entailment model to filtered sentences
+        questionResults = []
+        #print("ENTAILMENTS")
+        for st in filteredSentences:
+            #array where the scores of a sentence for the options of the question
+            sentenceValuesForQuestion = []
+            for option in questions[questionIndex]:
+                score = ENTAIL_MODEL.predict([(st, option)]) ### text, hypothesis => it is very important to keep the order
+                label =  [LABEL_MAPPING[score_max] for score_max in score.argmax(axis=1)]   
+                if label[0] == 'entailment':
+                    value = softmax(score[0])[1]
+                    nEntailments += 1
+                    if printFlag:
+                        print("{} \t {} \t Score: {} \t Value: {:.2f} \t Label: {}".format(st, option, score, value, label))
+                else:
+                    value = -1
+                sentenceValuesForQuestion.append(value)       
+            questionResults.append(sentenceValuesForQuestion)
+
+        #check if there is any evidence
+        if len(questionResults) > 0:    
+            #get the points coreresponding to the question
+            sentencesPoints = getSentencesPointsNLI_V2(questionResults,points,questionIndex)
+            maxPoints = max(sentencesPoints)     
+        else: 
+            maxPoints = 0
+        
+        result.append(maxPoints)
+        questionIndex += 1
+    return result
             
 #given the scores of the sentences with the options of a question 
 #returns the index of the max value
@@ -555,6 +600,19 @@ def getSentencesPointsNLI(scores,points,questionIndex):
     sentencesPoints = [ int(points[questionIndex][questionOption]) for questionOption in questionOptions ]
     print("Question options: ",questionOptions)
     print("Question points: ",sentencesPoints)
+    return sentencesPoints
+
+def getSentencesPointsNLI_V2(scores,points,questionIndex):
+    #get the question option that matches that score
+    #if there is a tie we get the last value
+    #if max is -1 we dont have an entailment so we filter it
+    # Reverse the list and get the last index of the element
+    questionOptions = [ (len(l) - l[::-1].index(max(l)) - 1) for l in scores if max(l) > -1 ]
+    #get the points for the question option
+    sentencesPoints = [ int(points[questionIndex][questionOption]) for questionOption in questionOptions ]
+    if len(sentencesPoints) == 0:
+        sentencesPoints = [0]
+    # print("Question points: ",sentencesPoints)
     return sentencesPoints
     
 def diagnosis(testResult):
