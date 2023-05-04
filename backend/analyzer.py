@@ -215,8 +215,9 @@ def analyzer(file,source='reddit',mode='presence'):
         result = sentencePresence(sentences,presenceEmbeddings,questions)
         return result 
     else:
+        presenceEmbeddings,questions = createEmbeddings(presenceFile)
         intensityEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
-        result,intenseSentences = sentenceIntensityNLI(sentences,points,questions)
+        result,intenseSentences = sentenceIntensityNLI(sentences,points,questions,presenceEmbeddings)
         intenseSentencesContext = getSentenceContext(intenseSentences,sentences,contextDict)
         print("****************************")
         print("RESULTS")
@@ -242,15 +243,15 @@ def getDictOfContext(texts,links):
             previousSentence = None
             followingSentence = None
             #previous
-            if currentIndex > 0:
+            if j > 0:
                 previousSentence =  st[j - 1]
             #following
-            if currentIndex < (len(st)-1):
+            if j < (len(st)-1):
                 followingSentence = st[j + 1]
             #the index of the text is the same of the link
             sentenceLink = links[i]
             #add object to dictionary
-            sentenceObject = sentenceContext(sentence,sentenceLink,prevContext=previousSentence,folContext=followingSentence)
+            sentenceObject = sentenceContext(st,sentenceLink,prevContext=previousSentence,folContext=followingSentence)
             contextDict[stId] = sentenceObject
             stId+=1
     return contextDict
@@ -458,46 +459,7 @@ def getSentencesPoints(scores,points,maxPoints,questionIndex):
 # INTENSITY USING NATURAL LANGUAGE INFERENCE
 ############################################################################################################# 
 
-def sentenceIntensityNLI(sentences,points,questions,printFlag=False):
-    result = []
-    questionIndex = 0
-    mostIntenseSentences = []
-    
-    for question in questions:
-        print("************************************")
-        print('Question:',bdiTitles[questionIndex])
-        questionResults = []
-        for sentence in sentences:
-            #array where the scores of a sentence for the options of the question
-            sentenceValuesForQuestion = []
-            for option in question:
-                score = ENTAIL_MODEL.predict([(sentence, option)]) ### text, hypothesis => it is very important to keep the order
-                label =  [LABEL_MAPPING[score_max] for score_max in score.argmax(axis=1)]   
-                #if label is neutral or contradiction we consider the value a 0
-                if label[0] != 'entailment':
-                    value = 0
-                else:
-                    value = softmax(score[0][1])
-                sentenceValuesForQuestion.append(value)
-                
-                if printFlag:
-                    print("{} \t {} \t Score: {} \t Value: {:.3f} \t Label: {}".format(sentence, option, score, value, label))      
-
-            questionResults.append(sentenceValuesForQuestion)
-
-        print("Results for question: \n",questionResults)        
-        #get the most intense sentences for the question and append it and the maxPoints
-        questionIntenseSentences,maxPoints = intenseSentencesOfQuestion(questionResults,sentences,points,questionIndex)
-        mostIntenseSentences.append(questionIntenseSentences)
-        result.append(maxPoints)
-        print("Intensity for question:",maxPoints)
-        questionIndex += 1
-    print("Result: \n",result)
-    print("Intense sentences: \n",mostIntenseSentences)
-
-    return result,mostIntenseSentences
-
-def sentenceIntensityNLI_V12(sentences,points,questions,presenceEmbeddings,printFlag=False,threshold=0.35):
+def sentenceIntensityNLI(sentences,points,questions,presenceEmbeddings,printFlag=False,threshold=0.35):
     sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
     result = []
     questionIndex = 0
@@ -537,18 +499,18 @@ def sentenceIntensityNLI_V12(sentences,points,questions,presenceEmbeddings,print
                     value = -1
                 sentenceValuesForQuestion.append(value)       
             questionResults.append(sentenceValuesForQuestion)
-
-        #check if there is any evidence
-        if len(questionResults) > 0:    
-            #get the points coreresponding to the question
-            sentencesPoints = getSentencesPointsNLI_V2(questionResults,points,questionIndex)
-            maxPoints = max(sentencesPoints)     
-        else: 
-            maxPoints = 0
-        
+                
+        #get the most intense sentences for the question and append it and the maxPoints
+        questionIntenseSentences,maxPoints = intenseSentencesOfQuestion(questionResults,sentences,points,questionIndex)
+        mostIntenseSentences.append(questionIntenseSentences)
         result.append(maxPoints)
+        print("Intensity for question:",maxPoints)
+
         questionIndex += 1
-    return result
+
+    print("Result: \n",result)
+    print("Intense sentences: \n",mostIntenseSentences)
+    return result,mostIntenseSentences
             
 #given the scores of the sentences with the options of a question 
 #returns the index of the max value
@@ -593,18 +555,6 @@ def intenseSentencesOfQuestion(scores,sentences,points,questionIndex):
 def getSentencesPointsNLI(scores,points,questionIndex):
     #get the question option that matches that score
     #if there is a tie we get the last value
-    # Reverse the list and get the last index of the element (all 0 is an exception)
-    questionOptions = [ l.index(max(l)) for l in scores ]
-    questionOptions = [ (len(l) - l[::-1].index(max(l)) - 1) if max(l)>0 else 0 for l in scores ]
-    #get the points for the question option
-    sentencesPoints = [ int(points[questionIndex][questionOption]) for questionOption in questionOptions ]
-    print("Question options: ",questionOptions)
-    print("Question points: ",sentencesPoints)
-    return sentencesPoints
-
-def getSentencesPointsNLI_V2(scores,points,questionIndex):
-    #get the question option that matches that score
-    #if there is a tie we get the last value
     #if max is -1 we dont have an entailment so we filter it
     # Reverse the list and get the last index of the element
     questionOptions = [ (len(l) - l[::-1].index(max(l)) - 1) for l in scores if max(l) > -1 ]
@@ -615,119 +565,7 @@ def getSentencesPointsNLI_V2(scores,points,questionIndex):
     # print("Question points: ",sentencesPoints)
     return sentencesPoints
     
-def diagnosis(testResult):
-    total = sum(testResult)
-    print('******************************')
-    print(total, 'points')
-    print('Diagnosis: ')
-    if total >= 0 and total <= 10:
-        print('These ups and downs are considered normal')
-    elif total >= 11 and total <= 16:
-        print("Mild mood disturbance")
-    elif total >= 17 and total <= 20:
-        print("Borderline clinical depression")
-    elif total >= 21 and total <= 30:
-        print("Moderate depression")
-    elif total >= 21 and total <= 40:
-        print("Severe depression")
-    else:
-        print("Extreme depression")
-    print('******************************')
-
-def testNLI(sentences,options):
-    scores = ENTAIL_MODEL.predict([(sentences, options)]) ### text, hypothesis => it is very important to keep the order
-    labels =  [LABEL_MAPPING[score_max] for score_max in scores.argmax(axis=1)]
-    print("Scores:", scores)
-    print("Labels:", labels)
-
-def comparacionIntensidades(sentences):
-    print("*************************************************************************************")
-    print("NLI")
-    print("*************************************************************************************")
-    start_time_1 = time.time()
-    sentenceIntensityNLI(sentences,printFlag=True,threshold=0.35)
-    end_time_1 = time.time()
-    time_1 = end_time_1 - start_time_1
-    print("*************************************************************************************")
-    print("Normal")
-    print("*************************************************************************************")
-    start_time_2 = time.time()
-    sentenceIntensity(sentences,printFlag=True,threshold=0.35)
-    end_time_2 = time.time()
-    time_2 = end_time_2 - start_time_2
-    print("*************************************************************************************")
-    print("Tiempo NLI: ", time_1)
-    print("Tiempo normal: ", time_2)
-    print("*************************************************************************************")
-
-def capturaEmbeddings():
-    l1 = ["I am very happy today","I don'feel fine today"]
-    l2 = ["I love my life","i feel very tired"]
-    l1Embeddings = model.encode(l1, convert_to_tensor=True)
-    l2Embeddings = model.encode(l2, convert_to_tensor=True)
-    cosineScores = util.cos_sim(l1Embeddings, l2Embeddings)
-    for i,scores in enumerate(cosineScores):
-        for j,score in enumerate(scores):
-            print("----------------------------------------")
-            print("Oración 1: ",l1[i])
-            #print("Embeddings oracion 1: ",l1Embeddings[i])
-            print("Oración 2: ",l2[j])
-            #print("Embeddings oracion 2: ",l2Embeddings[j])
-            print("Similitud coseno: ",cosineScores[i][j])
-            
-################################################################################################
-
-#createEmbeddings(intensityFile,mode='intensity')
-sad = ['i feel very tired','i want to commit suicide','everything i have done in my life is wrong']
-happy = ['i love my life','i sleep as usual']
-veryHappy = ['i am happy','i feel great today']
-suicidalThoughtsOptions = ["I don't have any thoughts of killing myself.",
-                            "I have thoughts of killing myself, but I would not carry them out.",
-                            "I would like to kill myself.",
-                            "I would kill myself if I had the chance."]
-
-#sentenceIntensityNLI(sad,printFlag=True,threshold=0.35)
-#print("*************************************************************************************")
-#sentenceIntensity(sad,printFlag=True,threshold=0.35)
-
-#comparacionIntensidades(sad)
-
-#sentencePresence(sad,printFlag=False)
-#sentenceIntensity(sad,printFlag=True,threshold=0.35)
-#processJson("rd_depression_2022_11_24_17_10_12_965065_output.json")
-#analyzer("demo_analyzer_short_v3.json",mode='intensity')
-#analyzer("tw_2022_10_3_19_5_54_567_output_1.json",source='twitter',mode='intensity')
-#findMaxIndex()
-
-tensors = torch.tensor([[0.1599, 0.1370, 0.1933, 0.2030],
-         [0.5391, 0.5128, 0.5068, 0.5192]])
-
-exampleScores = [[0.1599, 0.1370, 0.1933, 0.2030],
-         [0.5391, 0.5128, 0.5068, 0.5192]]
-
-#score for veryHappy sentences in question 1 (sadness)
-scoreVeryHappyQ1 = torch.tensor([[0.0, 0.0, 0.3541, 0.3585],
-         [0.4335, 0.4045, 0.3736, 0.0]])
-
-#testNLI(sad,suicidalThoughtsOptions)
-
-
-#analyzer('rd_query_car_2023_03_03_16_54_30_307193_output.json',source='reddit',mode='intensity')
-
-#prevalenceEmbeddings,points,questions = createEmbeddings(intensityFile,mode='intensity')
-
-#getSentencesPoints(tensors,points,0,0)
-#getSentencesPointsNLI(exampleScores,points,0,0)
-
-# filtered_tensors = filterBelowThreshold(tensors, 0.25)
-# print(filtered_tensors)
-
-#print(jsonToObjectArray("rd_2022_11_0_17_54_31_107_output.json"))
-#weekAnalyzer("tw_2022_11_6_12_55_47_611_output.json",mode='twitter')
-#timeAnalyzer("rd_2022_11_0_17_54_31_107_output.json",mode='intensity')
-#writeEmbeddings()
-#readEmbeddings()
-#capturaEmbeddings()
+# ==========================================================================================================================
 
 
 
