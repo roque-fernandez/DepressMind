@@ -96,8 +96,6 @@ def getCommentInfo(soup,link=None):
 
 #compare 
 def dateInRange(since, until, date):
-    #parsedDate = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
-    #if dateTimestamp > since and dateTimestamp < until:
     if date > since and date < until:
         return True
     return False
@@ -124,6 +122,10 @@ def subredditCrawler(subreddit, limit=1000, votes=0, since=None, until=None, out
             since = "1970-01-01"
         if until is None:
             until = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
+        if since > until:
+            raise Exception("Since date must be before until date")
+
 
         writingMode = 'a'
 
@@ -294,6 +296,9 @@ def redditUserCrawler(username, limit=1000, votes=0, since=None, until=None):
             since = "1970-01-01"
     if until is None:
         until = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    if since > until:
+        raise Exception("Since date must be before until date")
 
     # printing information
     redditHeader(username, limit, votes, since, until, outputName)
@@ -372,6 +377,9 @@ def redditQueryCrawler(query, limit=1000, votes=0, since=None, until=None):
             since = "1970-01-01"
     if until is None:
         until = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    if since > until:
+        raise Exception("Since date must be before until date")
 
     # printing information
     redditHeader(query, limit, votes, since, until, outputName)
@@ -473,13 +481,4 @@ def commandLineParser():
         print("Error")
 
 ########################################################################################################################
-#commandLineParser()
-#subredditCrawler('depression',votes=0,limit=1000,since="2023-03-19")
-#subredditCrawler('depression_help',votes=0,limit=100)
 
-#prueba()
-# getLink()
-#twitterCrawler(username="roquefernandez_",search="chorizo",limit=100)
-#redditGeneralistCrawler(limit=100, limitPerSubreddit=20)
-#redditUserCrawler('toohottooheavy',limit=10)
-#redditQueryCrawler("car",limit=50)

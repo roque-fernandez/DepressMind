@@ -432,13 +432,12 @@ def maxIndexOfScores(scores):
 
 #given the scores of a list of sentences returns the sentences wich have
 #the max intensity with the link and context of the sentence
-def mostIntenseSentences(scores,sentences,points,maxPoints,questionIndex):
+def getMostIntenseSentences(scores,sentences,points,maxPoints,questionIndex):
     mostIntenseSentences = []
     #if there is no points above 0 we return []
     if maxPoints == 0:
         return mostIntenseSentences
     #get points for every sentence
-
     for i in range(len(sentencePoints)):
         if sentencePoints[i] == maxPoints:
             mostIntenseSentences.append(sentences[i])
@@ -462,6 +461,7 @@ def getSentencesPoints(scores,points,maxPoints,questionIndex):
 def sentenceIntensityNLI(sentences,points,questions,presenceEmbeddings,printFlag=False,threshold=0.35):
     sentencesEmbedding = model.encode(sentences, convert_to_tensor=True)
     result = []
+    mostIntenseSentences = []
     questionIndex = 0
     for questionEmbeddings in presenceEmbeddings:
         nAboveThreshold = 0
