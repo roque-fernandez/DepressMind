@@ -140,9 +140,13 @@ export default class SearchResult extends Component {
         //if(this.props.login){
         if(this.context){
             return (
-                <div className="web-container">
+                <div className="web-container" style={{textAlign: 'center'}}>
 
-<button onClick={this.handleGoBack} className="btn btn-outline-primary" style={{margin: "1em 0em"}}>Search again</button> 
+                <div style={{marginTop: '1em',marginBottom: '2em'}} className="d-grid centered-button">
+                    <button onClick={this.handleGoBack} className="btn btn-outline-primary">
+                      Search again
+                    </button>
+                </div>
 
                     <div className="mb-3">
                         <h3>Results of your search</h3>

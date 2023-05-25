@@ -22,6 +22,7 @@ export default class AnalysisResult extends Component {
     this.formatDailyStatisticsKeys = this.formatDailyStatisticsKeys.bind(this);
     this.showIntenseSentences = this.showIntenseSentences.bind(this);
     this.goBack = this.goBack.bind(this);
+    this.handleGoBack = this.handleGoBack.bind(this);
 
     //index for the time analysis
     this.monthMaxIndex = Object.keys(this.props.statistics[3]).length - 1;
@@ -277,6 +278,11 @@ export default class AnalysisResult extends Component {
   goBack() {
     this.setState({flagIntenseSentences: false});
   }
+  
+  //to analyze again
+  handleGoBack() {
+    this.props.goBack(); // call the goBack function passed as a prop
+  }
 
   render() {
     const colors = [
@@ -299,14 +305,20 @@ export default class AnalysisResult extends Component {
       }
       return (
         <div className="web-container">
-            <LoggedNavBar/>   
+            <LoggedNavBar/>  
+
+            <div style={{marginTop: '1em',marginBottom: '2em'}} className="d-grid centered-button">
+                <button onClick={this.handleGoBack} className="btn btn-outline-primary">
+                  Analyze again
+                </button>
+            </div> 
 
             <div className="mb-3">
         
               {
                 this.props.mode === 'intensity' ?
 
-                <div>
+                <div style={{textAlign: 'center'}}>
                   <h1>{this.title} analysis</h1>
                 
                   <h5>Diagnosis: {this.state.generalDiagnosis}</h5>
