@@ -24,6 +24,7 @@ export default class SearchResult extends Component {
         this.setStatistics = this.setStatistics.bind(this);
         this.buildWordCloud = this.buildWordCloud.bind(this);
         this.countWords = this.countWords.bind(this);
+        this.handleGoBack = this.handleGoBack.bind(this);
 
         this.statistics = this.props.statistics;
         this.jsonResults = this.props.jsonResults;
@@ -130,12 +131,18 @@ export default class SearchResult extends Component {
         return result;
     }
 
+    handleGoBack() {
+        this.props.goBack(); // call the goBack function passed as a prop
+    }
+
 
     render() {
         //if(this.props.login){
         if(this.context){
             return (
                 <div className="web-container">
+
+<button onClick={this.handleGoBack} className="btn btn-outline-primary" style={{margin: "1em 0em"}}>Search again</button> 
 
                     <div className="mb-3">
                         <h3>Results of your search</h3>

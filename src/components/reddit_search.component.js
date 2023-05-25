@@ -14,6 +14,9 @@ export default class RedditSearch extends Component {
         this.handleSearchChange = this.handleSearchChange.bind(this);
         this.handleSearchTypeChange = this.handleSearchTypeChange.bind(this);
         this.parseJSONLines = this.parseJSONLines.bind(this);
+        this.showResults = this.showResults.bind(this);
+        this.goBack = this.goBack.bind(this);
+
         
         this.loading = false;
         this.download = false;
@@ -38,7 +41,8 @@ export default class RedditSearch extends Component {
             download: false,
             error: false,
             jsonResults: null,
-            flagButton: false
+            flagButton: false,
+            flagResults: false
         }
     }
 
@@ -49,7 +53,7 @@ export default class RedditSearch extends Component {
 
         // this.state.error = false
         // this.state.loading = true
-        axios.get('/reddit', {
+        axios.get(`/reddit`, {
             params: {
                 type: this.state.search.type,
                 keyword: this.state.search.keyword,
@@ -81,10 +85,11 @@ export default class RedditSearch extends Component {
             const jsonText = await res.text()
             console.log("Json text: ",jsonText)
             const jsonFileArray = this.parseJSONLines(jsonText)
-            console.log("Json File:",jsonFileArray)
+            //console.log("Json File:",jsonFileArray)
             this.jsonResults = jsonFileArray
             this.setState({ jsonResults: jsonFileArray })
             //show results
+            this.showResults();
             this.downloadLink = link 
             this.setState({ done: true })
             this.setState({ download: true })
@@ -182,14 +187,24 @@ export default class RedditSearch extends Component {
         
     };
 
+    showResults(){
+        this.setState({ flagResults: true })
+    }
+    
+    goBack() {
+        this.setState({flagResults: false});
+        this.setState({ loading: false });
+    }
+
     render() {
-        if(this.jsonResults){
+        if(this.state.flagResults){
             return (
                     <SearchResult 
                         link={this.downloadLink} 
                         statistics={this.statistics}
                         jsonResults={this.jsonResults}
                         textField="text"
+                        goBack={this.goBack} 
                     />
             )
         }
@@ -283,3 +298,6 @@ export default class RedditSearch extends Component {
         
     }
 }
+
+    
+            
