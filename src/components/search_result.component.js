@@ -34,16 +34,12 @@ export default class SearchResult extends Component {
         this.size = [400,400]
         this.words = this.buildWordCloud(this.props.jsonResults)
         //test variable for table
-        //this.tableData = [{"text":"Hello world","username":"pepe"},{"text":"my name is jose","username":"jose"}];
         this.tableData = this.props.jsonResults.slice(0,20)
         this.avgLikes = null;
         this.avgRts = null;
         this.totalUsers = null;
         this.total = null;
         this.avgVotes = null;
-
-        // this.setStatistics()
-        // this.buildWordCloud(this.props.jsonResults)
 
         this.state = {
   
@@ -144,7 +140,7 @@ export default class SearchResult extends Component {
                     <div className="mb-3">
                         <h3>Results of your search</h3>
                         <p>Total posts: {this.total}</p>
-                        <p>Different users: {this.totalUsers}</p>
+                        <p>Unique number of users: {this.totalUsers}</p>
                         { this.avgRts !== null ?
                             <p>Average rts: {this.avgRts}</p> :
                             <></>
@@ -169,26 +165,7 @@ export default class SearchResult extends Component {
                     </div>
 
                     <div className="mb-3">
-                        <h4>Preview</h4>
-                        
-                        {/* <table className='resultsTable'>
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Post</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {this.tableData.map((data,index) => {
-                                return (
-                                    <tr key={index} className='row-letter'>
-                                        <td>{data['username']}</td>
-                                        <td>{data[this.props.textField]}</td>
-                                    </tr>
-                                );
-                            })}
-                            </tbody>
-                        </table>  */}
+                        <h4>Example posts</h4>
 
                         <PreviewTable data={this.tableData}/>
                     </div>

@@ -136,6 +136,7 @@ export default class RedditSearch extends Component {
     handleSearchChange(event) {
         let field = event.target.name;
         let value = event.target.value;
+        // eslint-disable-next-line
         this.state.search[field] = value;
         this.setState({search: this.state.search});
         
@@ -168,6 +169,7 @@ export default class RedditSearch extends Component {
     handleSearchTypeChange(event) {
         let field = event.target.name;
         let value = event.target.value;
+        // eslint-disable-next-line
         this.state.search[field] = value;
         this.setState({search: this.state.search});
 
@@ -236,18 +238,18 @@ export default class RedditSearch extends Component {
                     </div>
     
                     <div className="mb-3">
-                        <label htmlFor="votesInput">Votes</label>
+                        <label htmlFor="votesInput">Minimum number of votes</label>
                         <input type="votes" name="votes" onChange={this.handleSearchChange} className="form-control" id="votesInput" aria-describedby="votesHelp" defaultValue="0"/>
                     </div>
     
                     <div className="mb-3">
-                        <label htmlFor="sinceInput">Since</label>
+                        <label htmlFor="sinceInput">From (oldest date)</label>
                         <input type="since" name="since" onChange={this.handleSearchChange} className="form-control" id="sinceInput" aria-describedby="sinceHelp" placeholder="Enter date since"/>
                         <small id="sinceHelp" className="form-text text-muted">Date format YYYY-MM-DD example: 2022-07-23</small>
                     </div>
     
                     <div className="mb-3">
-                        <label htmlFor="untilInput">Until</label>
+                        <label htmlFor="untilInput">To (newest date)</label>
                         <input type="until" name="until" onChange={this.handleSearchChange} className="form-control" id="untilInput" aria-describedby="untilHelp" placeholder="Enter date until"/>
                         <small id="untilHelp" className="form-text text-muted">Date format YYYY-MM-DD example: 2022-07-23</small>
                     </div>

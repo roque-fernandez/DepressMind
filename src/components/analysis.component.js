@@ -120,7 +120,7 @@ export default class Analysis extends Component {
                         <label htmlFor="modeInput">Mode</label>
                         <select onChange={this.handleChange} name="mode" id="modeInput" className="form-select" aria-label="Default select example">
                             <option defaultValue="intensity">Intensity</option>
-                            <option value="presence">Presence</option>
+                            <option value="presence">Relevance</option>
                             
                         </select>
                       </div>

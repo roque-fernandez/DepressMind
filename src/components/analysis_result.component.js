@@ -299,17 +299,15 @@ export default class AnalysisResult extends Component {
       }
       return (
         <div className="web-container">
-            <LoggedNavBar/>
-            
-            <h1>{this.title} analysis</h1>
+            <LoggedNavBar/>   
 
             <div className="mb-3">
-
-              <h3>General</h3>
         
               {
                 this.props.mode === 'intensity' ?
+
                 <div>
+                  <h1>{this.title} analysis</h1>
                 
                   <h5>Diagnosis: {this.state.generalDiagnosis}</h5>
 
@@ -337,7 +335,7 @@ export default class AnalysisResult extends Component {
                     }}
                   />
 
-                  <div className="d-grid centered-button">
+                  <div style={{marginTop: '1.5em',marginBottom: '1em'}} className="d-grid centered-button">
                     <button onClick={this.showIntenseSentences} className="btn btn-primary">
                       Show evidence
                     </button>
@@ -352,6 +350,9 @@ export default class AnalysisResult extends Component {
               {
                 this.props.mode === 'presence' ?
                 <div>
+                  <div style={{textAlign: 'center'}}>
+                    <h1>Depression symptoms relevance</h1>
+                  </div>
                   <Plot
                     data={[
                       {
@@ -366,16 +367,17 @@ export default class AnalysisResult extends Component {
                         width: 550, 
                         height: 440, 
                         title: this.state.mode,
-                        yaxis: {range: [0, 1]} 
+                        yaxis: {
+                          range: [0, 1],
+                          tickformat: ',.0%' // format tick labels as percentages
+                        } 
                       }
                     }
                   />
                 </div>
                 :
                 null
-              }
-
-              
+              }     
 
             </div>
 
@@ -388,139 +390,280 @@ export default class AnalysisResult extends Component {
               </select>
             </div>
 
-            
+             {/* RELEVANCE TEMPORAL ANALYSIS */} 
             {
-              this.state.timeAnalysis === 'weekly' ?
+              this.props.mode === 'presence' ?
 
-            <div className="mb-3">                
-              <Plot
-                data={[
-                  {
-                    x: BDITitles,
-                    y: Object.values(this.state.weeklyStatistics)[this.weekIndex],
-                    type: 'bar',
-                    marker: {
-                      color: Object.values(this.state.weeklyStatistics)[this.weekIndex].map((val) => colors[val-1]) // Map values to corresponding colors
-                    }
-                  }
-                ]}
-                layout={ 
-                  {
-                    width: 550, 
-                    height: 440, 
-                    title: "(Year,week)\n" + Object.keys(this.state.weeklyStatistics)[this.weekIndex],
-                    yaxis: {
-                      tickmode: 'linear',
-                      dtick: 1,
-                      // Add any other y-axis formatting options here
-                    }
-                  } 
+              <div>
+                {
+                  this.state.timeAnalysis === 'weekly' ?
+
+                  <div className="mb-3">                
+                    <Plot
+                      data={[
+                        {
+                          x: BDITitles,
+                          y: Object.values(this.state.weeklyStatistics)[this.weekIndex],
+                          type: 'bar'
+                        }
+                      ]}
+                      layout={ 
+                        {
+                          width: 550, 
+                          height: 440, 
+                          title: "(Year,week)\n" + Object.keys(this.state.weeklyStatistics)[this.weekIndex],
+                          yaxis: {
+                            range: [0, 1],
+                            tickformat: ',.0%'
+                          }
+                        } 
+                      }
+                    />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={this.decreaseWeekIndex} disabled={!this.state.weekPreviousButton} className="btn btn-primary">
+                      Previous week
+                    </button>
+
+                    <button onClick={this.increaseWeekIndex} disabled={!this.state.weekNextButton} className="btn btn-primary">
+                      Next week
+                    </button>
+
+                  </div>              
+                </div>
+                :
+                <></>
                 }
-              />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <button onClick={this.decreaseWeekIndex} disabled={!this.state.weekPreviousButton} className="btn btn-primary">
-                  Previous week
-                </button>
+                {
+                  this.state.timeAnalysis === 'monthly' ?
 
-                <button onClick={this.increaseWeekIndex} disabled={!this.state.weekNextButton} className="btn btn-primary">
-                  Next week
-                </button>
+                <div className="mb-3">                
+                  <Plot
+                    data={[
+                      {
+                        x: BDITitles,
+                        y: Object.values(this.state.monthlyStatistics)[this.monthIndex],
+                        type: 'bar',
+                        marker: {
+                          color: Object.values(this.state.monthlyStatistics)[this.monthIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                        }
+                      }
+                    ]}
+                    layout={ 
+                      {
+                        width: 550, 
+                        height: 440, 
+                        title: "(Year,month)\n" + Object.keys(this.state.monthlyStatistics)[this.monthIndex],
+                        yaxis: {
+                          range: [0, 1],
+                          tickformat: ',.0%'
+                        }
+                      } 
+                    }
+                  />
 
-              </div>              
-            </div>
-            :
-            <></>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={this.decreaseMonthIndex} disabled={!this.state.monthPreviousButton} className="btn btn-primary">
+                      Previous month
+                    </button>
+
+                    <button onClick={this.increaseMonthIndex} disabled={!this.state.monthNextButton} className="btn btn-primary">
+                      Next month
+                    </button>
+                  </div>              
+                </div>
+                :
+                <></>
+                }
+
+                {
+                  this.state.timeAnalysis === 'daily' ?
+
+                <div className="mb-3">                
+                  <Plot
+                    data={[
+                      {
+                        x: BDITitles,
+                        y: Object.values(this.state.dailyStatistics)[this.dayIndex],
+                        type: 'bar',
+                        marker: {
+                          color: Object.values(this.state.dailyStatistics)[this.dayIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                        }
+                      }
+                    ]}
+                    layout={ 
+                      {
+                        width: 550, 
+                        height: 440, 
+                        title: "(Year,month,day)\n" + Object.keys(this.state.dailyStatistics)[this.dayIndex],
+                        yaxis: {
+                          range: [0, 1],
+                          tickformat: ',.0%'
+                        }
+                      } 
+                    }
+                  />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={this.decreaseDayIndex} disabled={!this.state.dayPreviousButton} className="btn btn-primary">
+                      Previous day
+                    </button>
+
+                    <button onClick={this.increaseDayIndex} disabled={!this.state.dayNextButton} className="btn btn-primary">
+                      Next day
+                    </button>
+                  </div>              
+                </div>
+                :
+                <></>
+                }
+              </div>
+
+              :
+              null
             }
 
+
+            {/* INTENSITY TEMPORAL ANALYSIS */}
             {
-              this.state.timeAnalysis === 'monthly' ?
+              this.props.mode === 'intensity' ?
 
-            <div className="mb-3">                
-              <Plot
-                data={[
-                  {
-                    x: BDITitles,
-                    y: Object.values(this.state.monthlyStatistics)[this.monthIndex],
-                    type: 'bar',
-                    marker: {
-                      color: Object.values(this.state.monthlyStatistics)[this.monthIndex].map((val) => colors[val-1]) // Map values to corresponding colors
-                    }
-                  }
-                ]}
-                layout={ 
-                  {
-                    width: 550, 
-                    height: 440, 
-                    title: "(Year,month)\n" + Object.keys(this.state.monthlyStatistics)[this.monthIndex],
-                    yaxis: {
-                      tickmode: 'linear',
-                      dtick: 1,
-                      // Add any other y-axis formatting options here
-                    }
-                  } 
+              <div>
+                {
+                  this.state.timeAnalysis === 'weekly' ?
+
+                  <div className="mb-3">                
+                    <Plot
+                      data={[
+                        {
+                          x: BDITitles,
+                          y: Object.values(this.state.weeklyStatistics)[this.weekIndex],
+                          type: 'bar'
+                        }
+                      ]}
+                      layout={ 
+                        {
+                          width: 550, 
+                          height: 440, 
+                          title: "(Year,week)\n" + Object.keys(this.state.weeklyStatistics)[this.weekIndex],
+                          yaxis: {
+                            tickmode: 'linear',
+                            dtick: 1,
+                            tickformat: ',.0%'
+                            // Add any other y-axis formatting options here
+                          }
+                        } 
+                      }
+                    />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={this.decreaseWeekIndex} disabled={!this.state.weekPreviousButton} className="btn btn-primary">
+                      Previous week
+                    </button>
+
+                    <button onClick={this.increaseWeekIndex} disabled={!this.state.weekNextButton} className="btn btn-primary">
+                      Next week
+                    </button>
+
+                  </div>              
+                </div>
+                :
+                <></>
                 }
-              />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <button onClick={this.decreaseMonthIndex} disabled={!this.state.monthPreviousButton} className="btn btn-primary">
-                  Previous month
-                </button>
+                {
+                  this.state.timeAnalysis === 'monthly' ?
 
-                <button onClick={this.increaseMonthIndex} disabled={!this.state.monthNextButton} className="btn btn-primary">
-                  Next month
-                </button>
-              </div>              
-            </div>
-            :
-            <></>
-            }
-
-            {
-              this.state.timeAnalysis === 'daily' ?
-
-            <div className="mb-3">                
-              <Plot
-                data={[
-                  {
-                    x: BDITitles,
-                    y: Object.values(this.state.dailyStatistics)[this.dayIndex],
-                    type: 'bar',
-                    marker: {
-                      color: Object.values(this.state.dailyStatistics)[this.dayIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                <div className="mb-3">                
+                  <Plot
+                    data={[
+                      {
+                        x: BDITitles,
+                        y: Object.values(this.state.monthlyStatistics)[this.monthIndex],
+                        type: 'bar'
+                      }
+                    ]}
+                    layout={ 
+                      {
+                        width: 550, 
+                        height: 440, 
+                        title: "(Year,month)\n" + Object.keys(this.state.monthlyStatistics)[this.monthIndex],
+                        yaxis: {
+                          tickmode: 'linear',
+                          dtick: 1,
+                          tickformat: ',.0%'
+                          // Add any other y-axis formatting options here
+                        }
+                      } 
                     }
-                  }
-                ]}
-                layout={ 
-                  {
-                    width: 550, 
-                    height: 440, 
-                    title: "(Year,month,day)\n" + Object.keys(this.state.dailyStatistics)[this.dayIndex],
-                    yaxis: {
-                      tickmode: 'linear',
-                      dtick: 1,
-                      // Add any other y-axis formatting options here
-                    }
-                  } 
+                  />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={this.decreaseMonthIndex} disabled={!this.state.monthPreviousButton} className="btn btn-primary">
+                      Previous month
+                    </button>
+
+                    <button onClick={this.increaseMonthIndex} disabled={!this.state.monthNextButton} className="btn btn-primary">
+                      Next month
+                    </button>
+                  </div>              
+                </div>
+                :
+                <></>
                 }
-              />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <button onClick={this.decreaseDayIndex} disabled={!this.state.dayPreviousButton} className="btn btn-primary">
-                  Previous day
-                </button>
+                {
+                  this.state.timeAnalysis === 'daily' ?
 
-                <button onClick={this.increaseDayIndex} disabled={!this.state.dayNextButton} className="btn btn-primary">
-                  Next day
-                </button>
-              </div>              
-            </div>
-            :
-            <></>
+                <div className="mb-3">                
+                  <Plot
+                    data={[
+                      {
+                        x: BDITitles,
+                        y: Object.values(this.state.dailyStatistics)[this.dayIndex],
+                        type: 'bar',
+                        marker: {
+                          color: Object.values(this.state.dailyStatistics)[this.dayIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                        }
+                      }
+                    ]}
+                    layout={ 
+                      {
+                        width: 550, 
+                        height: 440, 
+                        title: "(Year,month,day)\n" + Object.keys(this.state.dailyStatistics)[this.dayIndex],
+                        yaxis: {
+                          tickmode: 'linear',
+                          dtick: 1,
+                          tickformat: ',.0%'
+                          // Add any other y-axis formatting options here
+                        }
+                      } 
+                    }
+                  />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={this.decreaseDayIndex} disabled={!this.state.dayPreviousButton} className="btn btn-primary">
+                      Previous day
+                    </button>
+
+                    <button onClick={this.increaseDayIndex} disabled={!this.state.dayNextButton} className="btn btn-primary">
+                      Next day
+                    </button>
+                  </div>              
+                </div>
+                :
+                <></>
+                }
+              </div>
+              :
+              null
             }
+ 
+            {/* DIMENSION EVOLUTIONS */}
 
-            <div className="mb-3">       
-              <h3>Evolution of dimensions</h3>         
+            <div className="mb-3">                    
               
               <Plot
                 data={[
