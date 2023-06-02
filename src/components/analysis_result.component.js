@@ -61,6 +61,7 @@ export default class AnalysisResult extends Component {
     this.state = {
       generalStatistics: this.props.statistics[0],
       generalDiagnosis: this.diagnosis(this.props.statistics[0]),
+      generalScore: this.props.statistics[0].reduce((a, b) => a + b, 0),
       monthlyStatistics: this.props.statistics[3],
       weeklyStatistics: this.props.statistics[2],
       dailyStatistics: this.props.statistics[1],
@@ -319,9 +320,9 @@ export default class AnalysisResult extends Component {
                 this.props.mode === 'intensity' ?
 
                 <div style={{textAlign: 'center'}}>
-                  <h1>{this.title} analysis</h1>
+                  <h2>BDI score: {this.state.generalScore}/63</h2>
                 
-                  <h5>Diagnosis: {this.state.generalDiagnosis}</h5>
+                  <h3>Diagnosis: {this.state.generalDiagnosis}</h3>
 
                   <Plot
                     data={[
@@ -396,7 +397,7 @@ export default class AnalysisResult extends Component {
             <div className="mb-3">
               <h3>Temporal analysis</h3>
               <select className="form-select" id="typeInput" name="timeAnalysis" onChange={this.handleChange} aria-label="Default select example">
-              <option defaultValue="weekly">Weekly</option>
+                <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                   <option value="daily">Daily</option>
               </select>
@@ -551,7 +552,10 @@ export default class AnalysisResult extends Component {
                         {
                           x: BDITitles,
                           y: Object.values(this.state.weeklyStatistics)[this.weekIndex],
-                          type: 'bar'
+                          type: 'bar',
+                          marker: {
+                            color: Object.values(this.state.weeklyStatistics)[this.weekIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                          }
                         }
                       ]}
                       layout={ 
@@ -561,9 +565,8 @@ export default class AnalysisResult extends Component {
                           title: "(Year,week)\n" + Object.keys(this.state.weeklyStatistics)[this.weekIndex],
                           yaxis: {
                             tickmode: 'linear',
-                            dtick: 1,
-                            tickformat: ',.0%'
-                            // Add any other y-axis formatting options here
+                            dtick: 1
+                            
                           }
                         } 
                       }
@@ -593,7 +596,10 @@ export default class AnalysisResult extends Component {
                       {
                         x: BDITitles,
                         y: Object.values(this.state.monthlyStatistics)[this.monthIndex],
-                        type: 'bar'
+                        type: 'bar',
+                        marker: {
+                          color: Object.values(this.state.monthlyStatistics)[this.monthIndex].map((val) => colors[val-1]) // Map values to corresponding colors
+                        }
                       }
                     ]}
                     layout={ 
@@ -603,9 +609,7 @@ export default class AnalysisResult extends Component {
                         title: "(Year,month)\n" + Object.keys(this.state.monthlyStatistics)[this.monthIndex],
                         yaxis: {
                           tickmode: 'linear',
-                          dtick: 1,
-                          tickformat: ',.0%'
-                          // Add any other y-axis formatting options here
+                          dtick: 1
                         }
                       } 
                     }
@@ -647,9 +651,7 @@ export default class AnalysisResult extends Component {
                         title: "(Year,month,day)\n" + Object.keys(this.state.dailyStatistics)[this.dayIndex],
                         yaxis: {
                           tickmode: 'linear',
-                          dtick: 1,
-                          tickformat: ',.0%'
-                          // Add any other y-axis formatting options here
+                          dtick: 1
                         }
                       } 
                     }

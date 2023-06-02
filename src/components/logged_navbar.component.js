@@ -1,16 +1,12 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+import '../index.css';
+import logoCitius from '../iconos/logo_citius.png';
 
 
 export default class LoggedNavBar extends Component {
 
-    //subrayar la opcion en la que estanis
-    
-    
-
-
     render() {
-        console.log("User in NavBar: ",this.props.login)
         return (
             <>
             <nav className="navbar navbar-expand-lg navbar-light fixed-top">
@@ -21,18 +17,26 @@ export default class LoggedNavBar extends Component {
                     <div className="collapse navbar-collapse" id="navbarTogglerDemo02">
                         <ul className="navbar-nav ml-auto">
                             <li className="nav-item">
-                                <Link className="nav-link" to={'/search'} >
-                                    Search
-                                </Link>
+                            <NavLink
+                                className="nav-link"
+                                activeclassname="active" // Clase CSS para el estilo activo/subrayado
+                                to="/search"
+                            >
+                                Search
+                            </NavLink>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to={'/analysis'} onClick={this.handleLinkClick}>
+                                <NavLink
+                                    className="nav-link"
+                                    activeclassname="active" // Clase CSS para el estilo activo/subrayado
+                                    to="/analysis"
+                                >
                                     Analysis
-                                </Link> 
-                                
+                                </NavLink>
                             </li>
                         </ul>
                     </div>
+                    <img src={logoCitius} alt="Logo Citius" />
                 </div>
             </nav>
             </>

@@ -26,11 +26,6 @@ export default class Search extends Component {
     }
 
     render() {
-        //if(this.props.login){
-        console.log("User context in Search: ",this.context)
-        console.log("User props in Search: ",this.props.login)
-        console.log("User context alt in Search: ",this.context.loggedIn)
-
 
         return(
             <loginContext.Consumer>

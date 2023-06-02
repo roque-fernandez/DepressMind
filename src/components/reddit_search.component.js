@@ -2,6 +2,11 @@ import React, { Component } from 'react'
 import axios from "axios";
 import SearchResult from './search_result.component';
 import BarLoader from "react-spinners/BarLoader";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { parseISO } from 'date-fns';
+
+
 
 
 export default class RedditSearch extends Component {
@@ -141,6 +146,11 @@ export default class RedditSearch extends Component {
     handleSearchChange(event) {
         let field = event.target.name;
         let value = event.target.value;
+
+        if (field === "since" || field === "until") {
+            value = value.toISOString().split("T")[0]; // Formatear fecha a YYYY-MM-DD
+        }
+
         // eslint-disable-next-line
         this.state.search[field] = value;
         this.setState({search: this.state.search});
@@ -199,13 +209,13 @@ export default class RedditSearch extends Component {
     render() {
         if(this.state.flagResults){
             return (
-                    <SearchResult 
-                        link={this.downloadLink} 
-                        statistics={this.statistics}
-                        jsonResults={this.jsonResults}
-                        textField="text"
-                        goBack={this.goBack} 
-                    />
+                <SearchResult 
+                    link={this.downloadLink} 
+                    statistics={this.statistics}
+                    jsonResults={this.jsonResults}
+                    textField="text"
+                    goBack={this.goBack} 
+                />
             )
         }
         else{
@@ -259,14 +269,33 @@ export default class RedditSearch extends Component {
     
                     <div className="mb-3">
                         <label htmlFor="sinceInput">From (oldest date)</label>
-                        <input type="since" name="since" onChange={this.handleSearchChange} className="form-control" id="sinceInput" aria-describedby="sinceHelp" placeholder="Enter date since"/>
-                        <small id="sinceHelp" className="form-text text-muted">Date format YYYY-MM-DD example: 2022-07-23</small>
+                        <DatePicker
+                            selected={this.state.search.since ? parseISO(this.state.search.since) : null}
+                            onChange={(date) =>
+                                this.handleSearchChange({ target: { name: 'since', value: date } })
+                            }
+                            className="form-control"
+                            id="sinceInput"
+                            aria-describedby="sinceHelp"
+                            placeholderText="Select date"
+                            dateFormat="yyyy-MM-dd" // Formato de fecha deseado
+                        />
+
                     </div>
     
                     <div className="mb-3">
                         <label htmlFor="untilInput">To (newest date)</label>
-                        <input type="until" name="until" onChange={this.handleSearchChange} className="form-control" id="untilInput" aria-describedby="untilHelp" placeholder="Enter date until"/>
-                        <small id="untilHelp" className="form-text text-muted">Date format YYYY-MM-DD example: 2022-07-23</small>
+                        <DatePicker
+                            selected={this.state.search.until ? parseISO(this.state.search.until) : null}
+                            onChange={(date) =>
+                                this.handleSearchChange({ target: { name: 'until', value: date } })
+                            }
+                            className="form-control"
+                            id="untilInput"
+                            aria-describedby="untilHelp"
+                            placeholderText="Select date"
+                            dateFormat="yyyy-MM-dd" // Formato de fecha deseado
+                        />
                     </div>
     
     

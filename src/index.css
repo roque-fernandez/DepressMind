@@ -110,6 +110,11 @@ body, html, .App, #root, .auth-wrapper {
   border-style: solid;
 }
 
+.active {
+  text-decoration: underline;
+  color: red;
+}
+
 .row-letter{
   font-size: x-small;
 }

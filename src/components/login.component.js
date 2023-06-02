@@ -35,6 +35,7 @@ export default class Login extends Component {
             console.log(res)
             console.log("Login completed")
 
+            this.context.setLoggedIn(this.state.username);
             this.setState({ redirect: true })          
         }).catch((error) => {
           if (error.response) {
@@ -54,16 +55,16 @@ export default class Login extends Component {
 
     printName(){
         console.log("Data: ",this.state.password)
-    } 
+    }
+    
 
     render() {
         if(this.state.redirect){
-            // Update the context value
-            this.context.setLoggedIn(this.state.username);
+            
             return (
                 <div>
                     <Search login={this.state.username} />
-                    {/* <Analysis login={this.state.username} /> */}
+                    
                 </div>
             )
             
@@ -95,25 +96,13 @@ export default class Login extends Component {
                         />
                         </div>
                         <div className="mb-3">
-                        {/* <div className="custom-control custom-checkbox">
-                            <input
-                            type="checkbox"
-                            className="custom-control-input"
-                            id="customCheck1"
-                            />
-                            <label className="custom-control-label" htmlFor="customCheck1">
-                            Remember me
-                            </label>
-                        </div> */}
+                        
                         </div>
                         <div className="d-grid">
                         <button type="submit" className="btn btn-primary" onClick={this.sendData}>
                             Submit
                         </button>
                         </div>
-                        {/* <p className="forgot-password text-right">
-                        Forgot <a href="/">password?</a>
-                        </p> */}
                         <p className="forgot-password text-right">
                         <a href="/sign-up">Sign up</a>
                         </p>
