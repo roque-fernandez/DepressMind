@@ -34,6 +34,15 @@ export default class LoggedNavBar extends Component {
                                     Analysis
                                 </NavLink>
                             </li>
+                            <li className="nav-item">
+                                <NavLink
+                                    className="nav-link"
+                                    activeclassname="active" // Clase CSS para el estilo activo/subrayado
+                                    to="/user-options"
+                                >
+                                    User options
+                                </NavLink>
+                            </li>
                         </ul>
                     </div>
                     <img src={logoCitius} alt="Logo Citius" />

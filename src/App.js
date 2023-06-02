@@ -9,6 +9,7 @@ import Login from './components/login.component'
 import SignUp from './components/signup.component'
 import Search from './components/search.component'
 import Analysis from './components/analysis.component'
+import UserOptions from './components/user_options.component'
 
 function App() {
 
@@ -28,6 +29,7 @@ function App() {
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/analysis" element={<Analysis />} />
+                <Route path="/user-options" element={<UserOptions />} />
               </Routes>
             
             

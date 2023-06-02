@@ -123,6 +123,7 @@ export default class TwitterSearch extends Component {
             value = value.toISOString().split("T")[0]; // Formatear fecha a YYYY-MM-DD
         }
 
+        // eslint-disable-next-line
         this.state.search[field] = value;
         return this.setState({search: this.state.search});
     };

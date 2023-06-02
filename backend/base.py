@@ -128,10 +128,11 @@ def analysis():
     except Exception as e:
         return str(e)
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET'])
 def login():
-    username = json.loads(request.data)['username']
-    password = json.loads(request.data)['password']
+    args = request.args
+    username = args.get('username')
+    password = args.get('password')
     
     currentUser = users.find_one({'username':username})
     print("User: ",currentUser['username'])
@@ -160,7 +161,27 @@ def register():
     users.insert_one({'username': username, 'password': hashedPassword})
     return "Ok",200
 
-@app.route('/test', methods=['POST'])   
-def test():
-    l = [1,2,3,'hola']
-    return jsonify(l) 
+@app.route('/change-password', methods=['PUT'])   
+def changePassword():
+    username = json.loads(request.data)['username']
+    oldPassword = json.loads(request.data)['oldPassword']
+    newPassword1 = json.loads(request.data)['newPassword1']
+    newPassword2 = json.loads(request.data)['newPassword2']
+
+    if newPassword1 != newPassword2:
+        return "Passwords do not match", 400
+
+    currentUser = users.find_one({'username': username})
+    print("User: ", currentUser['username'])
+    if currentUser:
+        # Check if the old password is correct
+        if bcrypt.checkpw(oldPassword.encode('utf-8'), currentUser['password']):
+            # Generate the hash of the new password
+            newHashedPassword = bcrypt.hashpw(newPassword1.encode('utf-8'), bcrypt.gensalt())
+            # Update the user's password in the database
+            users.update_one({'username': username}, {'$set': {'password': newHashedPassword}})
+            return "Password updated successfully", 200
+        else:
+            return "Wrong password", 400
+    else:
+        return "User not found", 404

@@ -21,7 +21,7 @@ export default class PreviewTable extends React.Component {
         this.columns = [
             {
                 name: "Username",
-                selector: "username",
+                selector: (row) => row.username,
                 sortable: true,
                 minWidth: "80px",
                 maxWidth: "130px",
@@ -33,7 +33,7 @@ export default class PreviewTable extends React.Component {
               },
               {
                 name: "Post",
-                selector: "text",
+                selector: (row) => row.text,
                 sortable: true,
                 minWidth: "370px",
                 maxWidth: "none",
