@@ -66,11 +66,11 @@ export default class AnalysisResult extends Component {
       weeklyStatistics: this.props.statistics[2],
       dailyStatistics: this.props.statistics[1],
       //graph buttons
-      monthNextButton: true,
+      monthNextButton: this.monthMaxIndex > 0,
       monthPreviousButton: false,
-      weekNextButton: true,
+      weekNextButton: this.weekMaxIndex > 0,
       weekPreviousButton: false,
-      dayNextButton: true,
+      dayNextButton: this.dayMaxIndex > 0,
       dayPreviousButton: false,
       //type of time analysis
       timeAnalysis: 'weekly',

@@ -15,7 +15,6 @@ export default class Analysis extends Component {
     this.getData = this.getData.bind(this);
     this.goBack = this.goBack.bind(this);
 
-    this.selectedFile = null;
     this.resultFlag = false;
     this.result = null;
     this.graphData = [2,6,3,5,5,7,2,6,3,5,5,7,2,6,3,5,5,7,4,5,6]
@@ -26,7 +25,8 @@ export default class Analysis extends Component {
       resultFlag: false,
       loading: false,
       error: false,
-      flagResults: false
+      flagResults: false,
+      selectedFile: null,
     }
   }
 
@@ -35,7 +35,7 @@ export default class Analysis extends Component {
   }
 
   onFileChange = event => {
-    this.selectedFile = event.target.files[0];
+    this.setState({ selectedFile: event.target.files[0] });
   }
 
 
@@ -48,8 +48,8 @@ export default class Analysis extends Component {
     // Update the formData object
     formData.append(
       "file",
-      this.selectedFile,
-      this.selectedFile.name
+      this.state.selectedFile,
+      this.state.selectedFile.name
     );
     // Details of the uploaded file
     console.log(this.selectedFile);
@@ -136,7 +136,11 @@ export default class Analysis extends Component {
                       </div>
         
                       <div className="d-grid centered-button">
-                        <button onClick={this.getData} disabled={this.state.loading} className="btn btn-primary">
+                        <button
+                          onClick={this.getData}
+                          disabled={this.state.loading || !this.state.selectedFile} // Disable if loading or no file selected
+                          className="btn btn-primary"
+                        >
                           Analyze
                         </button>
                       </div>
