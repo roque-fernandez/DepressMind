@@ -1,1 +1,1 @@
-# OnlineMentalHealthAnalyzer_Extended
+# DepressMind
