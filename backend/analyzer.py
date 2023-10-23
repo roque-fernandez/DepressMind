@@ -7,9 +7,9 @@ import time
 import nltk
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
-presenceFile = r".\BDI\bdi_presence.txt"
-intensityFile = r".\BDI\bdi_intensity.txt"
-outputLocation = r".\upload\\"
+presenceFile = r"./BDI/bdi_presence.txt"
+intensityFile = r"./BDI/bdi_intensity.txt"
+outputLocation = r"./upload/"
 threshold = 0.35
 
 ENTAIL_MODEL = CrossEncoder('cross-encoder/nli-deberta-v3-base')

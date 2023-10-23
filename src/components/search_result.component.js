@@ -177,7 +177,6 @@ export default class SearchResult extends Component {
 
                     <div className="mb-3">
                         <h4>Example posts</h4>
-
                         <PreviewTable data={this.tableData}/>
                     </div>
                     

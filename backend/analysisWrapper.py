@@ -2,8 +2,8 @@
 import json
 import analyzer 
 
-outputLocation = r".\outputs\\"
-uploadLocation = r".\upload\\"
+outputLocation = r"./outputs/"
+uploadLocation = r"./upload/"
 
 
 def analysis(file):

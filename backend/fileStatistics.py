@@ -1,5 +1,5 @@
 import json
-outputLocation = r".\outputs\\"
+outputLocation = r"./outputs/"
 
 def redditStatistics(file):
     path = outputLocation + file

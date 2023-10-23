@@ -10,8 +10,8 @@ import fileStatistics as fst
 import analyzer 
 
 
-outputLocation = r".\outputs\\"
-uploadLocation = r".\upload\\"
+outputLocation = r"./outputs/"
+uploadLocation = r"./upload/"
 
 app = Flask(__name__)
 

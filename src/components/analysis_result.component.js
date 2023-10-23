@@ -457,10 +457,7 @@ export default class AnalysisResult extends Component {
                       {
                         x: BDITitles,
                         y: Object.values(this.state.monthlyStatistics)[this.monthIndex],
-                        type: 'bar',
-                        marker: {
-                          color: Object.values(this.state.monthlyStatistics)[this.monthIndex].map((val) => colors[val-1]) // Map values to corresponding colors
-                        }
+                        type: 'bar'
                       }
                     ]}
                     layout={ 
@@ -499,10 +496,8 @@ export default class AnalysisResult extends Component {
                       {
                         x: BDITitles,
                         y: Object.values(this.state.dailyStatistics)[this.dayIndex],
-                        type: 'bar',
-                        marker: {
-                          color: Object.values(this.state.dailyStatistics)[this.dayIndex].map((val) => colors[val-1]) // Map values to corresponding colors
-                        }
+                        type: 'bar'
+            
                       }
                     ]}
                     layout={ 
