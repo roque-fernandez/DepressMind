@@ -20,7 +20,7 @@ $ sudo apt install mongodb-org
 $ sudo systemctl start mongod.service
 ```
 
-#### Back end dependencies
+#### Backend dependencies
 
 DepressMind runs a Flask api that process the petitions and redirects them to a Python backend. We provide a ```requirements.txt``` file that encapsulates all the necessary dependencies:
 
@@ -28,7 +28,7 @@ DepressMind runs a Flask api that process the petitions and redirects them to a 
 $ pip install -r requirements.txt
 ```
 
-### Deploying in localhost
+### Deployment on localhost
 
 Once all the prerequistes have been installed, we can deploy DepressMind in our machine just running:
 
