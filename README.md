@@ -25,6 +25,8 @@ $ sudo systemctl start mongod.service
 DepressMind runs a Flask api that process the petitions and redirects them to a Python backend. We provide a ```requirements.txt``` file that encapsulates all the necessary dependencies:
 
 ```shell
+$ git clone git@github.com:roque-fernandez/DepressMind.git
+$ cd DepressMind/
 $ pip install -r requirements.txt
 ```
 
