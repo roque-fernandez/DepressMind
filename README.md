@@ -1,5 +1,26 @@
 # DepressMind
 
+### Paper
+
+Please, do not forget to cite our paper in your works:
+
+@inproceedings{fernandez-iglesias-etal-2024-depressmind,
+    title = "{D}epress{M}ind: A Depression Surveillance System for Social Media Analysis",
+    author = "Fern{\'a}ndez-Iglesias, Roque  and
+      Fernandez-Pichel, Marcos  and
+      Aragon, Mario  and
+      Losada, David E.",
+    editor = "Aletras, Nikolaos  and
+      De Clercq, Orphee",
+    booktitle = "Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations",
+    month = mar,
+    year = "2024",
+    address = "St. Julians, Malta",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.eacl-demo.5",
+    pages = "35--43",
+}
+
 ### Installation
 
 For correct operation, DepressMind requires the installation of **Node JS**, **MongoDB** and some backend dependencies. Below are the necessary steps for the installation of dependencies:
